@@ -1,8 +1,320 @@
 # Common Generative AI Interview Questions
 
-Owner: Aritra Roy
+**Owner:** Aritra Roy
+
+---
+
+## 📋 Table of Contents
+
+| # | Section | Topics Covered |
+|---|---------|----------------|
+| 1 | [Retrieval-Augmented Generation (RAG)](#retrieval-augmented-generation-rag) | RAG Pipeline, Chunking, Vector Search, Re-ranking, Evaluation |
+| 2 | [Generative Models](#generative-models) | GANs, VAEs, Mode Collapse, Overfitting, Curriculum Learning |
+| 3 | [Large Language Models](#large-language-models) | Transformers, BERT, GPT, RLHF, Positional Encoding, Attention |
+| 4 | [Multimodal Models](#multimodal-models) | CLIP, DALL-E, VLP, Cross-modal Attention, Vision-Language |
+| 5 | [Embeddings](#embeddings) | Word/Sentence Embeddings, Triplet Loss, Quantization, Transfer Learning |
+| 6 | [Training, Inference & Evaluation](#training-inference-and-evaluation) | Overfitting, Perplexity, Hallucination, MoE, BLEU/ROUGE |
+| 7 | [Numerical Stability & Optimization](#numerical-stability--optimization) | Sigmoid, Floating-Point Overflow, Stable Implementations |
 
 
+---
+
+## Retrieval-Augmented Generation (RAG)
+ 
+**1. What is Retrieval-Augmented Generation (RAG), and why is it used?**
+ 
+- **Answer:**
+  RAG is a framework that enhances LLM generation by retrieving relevant documents from an external knowledge base before generating a response. Instead of relying solely on parametric knowledge encoded in model weights during training, RAG allows the model to access up-to-date or domain-specific information at inference time.
+  **Why it's used:**
+  - **Reduces hallucination:** Grounds responses in retrieved evidence.
+  - **Knowledge freshness:** Can incorporate recent information without retraining.
+  - **Domain specificity:** Enables enterprise/private knowledge bases.
+  - **Transparency:** Retrieved sources can be cited, making outputs auditable.
+---
+ 
+**2. Describe the high-level architecture of a RAG pipeline.**
+ 
+- **Answer:**
+  A typical RAG pipeline consists of:
+  1. **Document Ingestion:** Raw documents (PDFs, web pages, etc.) are collected and preprocessed.
+  2. **Chunking:** Documents are split into smaller, manageable chunks (e.g., 256–512 tokens).
+  3. **Embedding:** Each chunk is converted to a vector embedding using an embedding model.
+  4. **Vector Store:** Embeddings are stored in a vector database (e.g., Pinecone, Weaviate, FAISS, Chroma).
+  5. **Query Processing:** The user's query is embedded using the same embedding model.
+  6. **Retrieval:** Top-k most similar chunks are retrieved via approximate nearest neighbor search.
+  7. **Augmentation:** Retrieved chunks are prepended to the prompt as context.
+  8. **Generation:** The LLM generates a response grounded in the retrieved context.
+---
+ 
+**3. What are the key chunking strategies in RAG, and how do they affect retrieval quality?**
+ 
+- **Answer:**
+  Chunking determines what information is stored and retrieved. Common strategies:
+  | Strategy | Description | Best for |
+  |----------|-------------|----------|
+  | **Fixed-size chunking** | Split by character/token count | Simple, fast; baseline approach |
+  | **Sentence-based** | Split at sentence boundaries | Preserves linguistic units |
+  | **Paragraph-based** | Split at paragraph breaks | Preserves thematic coherence |
+  | **Semantic chunking** | Split when semantic similarity drops | Most context-aware; computationally expensive |
+  | **Hierarchical/recursive** | Split recursively into smaller units | Balances granularity and coherence |
+  **Key considerations:** Chunk size trades off recall (larger = more context) vs. precision (smaller = more targeted). Overlap between chunks (e.g., 10–20% overlap) helps preserve context at boundaries.
+---
+ 
+**4. What is the difference between sparse retrieval and dense retrieval?**
+ 
+- **Answer:**
+  | Aspect | Sparse Retrieval (e.g., BM25) | Dense Retrieval (e.g., DPR, embeddings) |
+  |--------|-------------------------------|------------------------------------------|
+  | Representation | TF-IDF / inverted index (bag of words) | Dense neural embeddings |
+  | Matching | Exact keyword matching | Semantic similarity |
+  | Speed | Very fast | Slower (ANN search) |
+  | Context | No contextual understanding | Captures semantic meaning |
+  | Out-of-vocabulary | Cannot match unseen words | Handles synonyms and paraphrases |
+  **Hybrid retrieval** combines both (e.g., BM25 + embedding re-ranking) to leverage keyword precision and semantic understanding.
+---
+ 
+**5. What is re-ranking in RAG, and why is it important?**
+ 
+- **Answer:**
+  Re-ranking is a post-retrieval step where an initial set of retrieved documents (e.g., top-50) is re-scored and reordered by a more powerful but slower cross-encoder model before passing the top-k results to the LLM.
+  **Why it matters:**
+  - Initial retrieval (bi-encoder) is fast but coarse; re-ranking improves precision.
+  - Cross-encoders jointly encode the query and document for more accurate relevance scoring.
+  - Reduces the number of irrelevant chunks passed to the LLM, improving response quality and reducing hallucination.
+  **Example:** Retrieve top-50 via cosine similarity, re-rank with a cross-encoder, pass top-5 to the LLM.
+---
+ 
+**6. How do you evaluate a RAG system?**
+ 
+- **Answer:**
+  RAG evaluation covers both retrieval and generation quality:
+  **Retrieval Metrics:**
+  - **Hit Rate / Recall@k:** Fraction of queries where the correct chunk appears in top-k retrieved results.
+  - **MRR (Mean Reciprocal Rank):** Average of reciprocal ranks of the first correct retrieval.
+  - **NDCG (Normalized Discounted Cumulative Gain):** Accounts for position of relevant documents.
+  **Generation Metrics:**
+  - **Faithfulness:** Is the answer supported by the retrieved context? (avoids hallucination)
+  - **Answer Relevance:** Does the answer address the user's question?
+  - **Context Precision/Recall:** How much of the retrieved context is relevant / how much relevant info was retrieved?
+  **End-to-End Frameworks:**
+  - **RAGAS:** An open-source framework specifically designed to evaluate RAG pipelines on faithfulness, answer relevance, context precision, and context recall.
+  - **TruLens:** Provides evaluations using LLM-as-a-judge for RAG quality.
+---
+ 
+**7. What are common failure modes in RAG systems and how can they be mitigated?**
+ 
+- **Answer:**
+  | Failure Mode | Cause | Mitigation |
+  |-------------|-------|------------|
+  | **Retrieval miss** | Relevant doc not in top-k | Increase k, improve embedding model, add re-ranking |
+  | **Context overflow** | Too much retrieved text exceeds context window | Reduce k, better chunking, summarize chunks |
+  | **Semantic mismatch** | Query and document use different vocabulary | Hybrid retrieval (sparse + dense), query expansion |
+  | **Hallucination despite retrieval** | LLM ignores or misuses retrieved context | Prompt engineering, faithfulness fine-tuning |
+  | **Stale knowledge** | Knowledge base not updated regularly | Incremental indexing, time-based filtering |
+  | **Poor chunking** | Critical context split across chunks | Overlap chunking, semantic chunking |
+---
+ 
+**8. What is the role of the embedding model in a RAG pipeline, and how should it be selected?**
+ 
+- **Answer:**
+  The embedding model converts text (both documents and queries) into dense vectors. The quality of these embeddings directly determines retrieval quality.
+  **Selection criteria:**
+  - **Task alignment:** Models trained for retrieval (e.g., `text-embedding-ada-002`, `bge-large`, `e5-large`) outperform general embeddings.
+  - **Domain fit:** Fine-tune or select models pre-trained on domain-specific data (e.g., legal, medical).
+  - **Context length:** Ensure the model can handle your chunk size.
+  - **Benchmarks:** Use MTEB (Massive Text Embedding Benchmark) scores as a reference for retrieval tasks.
+  - **Consistency:** Query and document embeddings must use the **same model** for meaningful similarity scores.
+---
+ 
+**9. What is query transformation and how does it improve RAG performance?**
+ 
+- **Answer:**
+  Query transformation modifies the user's query before retrieval to improve match quality:
+  - **Query rewriting:** Rephrase ambiguous queries into clearer retrieval-friendly forms using an LLM.
+  - **HyDE (Hypothetical Document Embeddings):** Generate a hypothetical answer with the LLM, embed it, and use that embedding for retrieval instead of the raw query. Improves retrieval when the query and relevant documents are stylistically different.
+  - **Multi-query expansion:** Generate multiple variants of the query, retrieve for each, and merge results.
+  - **Step-back prompting:** Transform specific queries into more general ones to retrieve broader context.
+---
+ 
+**10. What is the difference between naive RAG, advanced RAG, and modular RAG?**
+ 
+- **Answer:**
+  | Type | Description | Characteristics |
+  |------|-------------|-----------------|
+  | **Naive RAG** | Basic retrieve-then-generate pipeline | Simple, fragile, limited optimization |
+  | **Advanced RAG** | Adds pre-retrieval (query rewriting) and post-retrieval (re-ranking, compression) steps | Better accuracy, handles edge cases |
+  | **Modular RAG** | Treats each step as an independent, swappable module | Highly flexible; enables custom pipelines, iterative retrieval, and task-specific optimization |
+  Modern RAG frameworks (LangChain, LlamaIndex) largely implement modular RAG patterns, allowing components like the retriever, re-ranker, and generator to be mixed and matched.
+
+---
+
+## Generative Models
+
+1. **What is the difference between generative and discriminative models?**
+- Answer:
+    - Generative models, such as Variational Autoencoders (VAEs) and Generative Adversarial Networks (GANs), are designed to generate new data samples by understanding and capturing the underlying data distribution. Discriminative models, on the other hand, focus on distinguishing between different classes or categories within the data.
+        
+        ![60_fig_8](https://github.com/rayari-1729/AI-Engineering/blob/main/interview_prep/img/60_fig_8.png)
+        
+        Image Source: [https://medium.com/@jordi299/about-generative-and-discriminative-models-d8958b67ad32](https://medium.com/@jordi299/about-generative-and-discriminative-models-d8958b67ad32)
+        
+
+---
+
+2. **Describe the architecture of a Generative Adversarial Network and how the generator and discriminator interact during training.**
+- Answer:
+    
+    A Generative Adversarial Network comprises a generator and a discriminator. The generator produces synthetic data, attempting to mimic real data, while the discriminator evaluates the authenticity of the generated samples. During training, the generator and discriminator engage in a dynamic interplay, each striving to outperform the other. The generator aims to create more realistic data, and the discriminator seeks to improve its ability to differentiate between real and generated samples.
+    
+    ![60_fig_1](https://github.com/rayari-1729/AI-Engineering/blob/main/interview_prep/img/60_fig_1.png)
+    
+    Image Source: [https://climate.com/tech-at-climate-corp/gans-disease-identification-model/](https://climate.com/tech-at-climate-corp/gans-disease-identification-model/)
+    
+
+---
+
+3. **Explain the concept of a Variational Autoencoder (VAE) and how it incorporates latent variables into its architecture.**
+- Answer:
+    
+    A Variational Autoencoder (VAE) is a type of neural network architecture used for unsupervised learning of latent representations of data. It consists of an encoder and a decoder network.
+    
+    ![60_fig_2](https://github.com/rayari-1729/AI-Engineering/blob/main/interview_prep/img/60_fig_2.png)
+    
+    Image source: [https://towardsdatascience.com/understanding-variational-autoencoders-vaes-f70510919f73](https://towardsdatascience.com/understanding-variational-autoencoders-vaes-f70510919f73)
+    
+    The encoder takes input data and maps it to a probability distribution in a latent space. Instead of directly producing a single latent vector, the encoder outputs parameters of a probability distribution, typically Gaussian, representing the uncertainty in the latent representation. This stochastic process allows for sampling from the latent space.
+    
+    The decoder takes these sampled latent vectors and reconstructs the input data. During training, the VAE aims to minimize the reconstruction error between the input data and the decoded output, while also minimizing the discrepancy between the learned latent distribution and a pre-defined prior distribution, often a standard Gaussian.
+    
+    By incorporating latent variables into its architecture, the VAE learns a compact and continuous representation of the input data in the latent space. This enables meaningful interpolation and generation of new data samples by sampling from the learned latent distribution. Additionally, the probabilistic nature of the VAE's latent space allows for uncertainty estimation in the generated outputs.
+    
+    read this article: [https://towardsdatascience.com/understanding-variational-autoencoders-vaes-f70510919f73](https://towardsdatascience.com/understanding-variational-autoencoders-vaes-f70510919f73)
+    
+
+---
+
+4. How do conditional generative models differ from unconditional ones? Provide an example scenario where a conditional approach is beneficial.
+- Answer:
+    
+    Conditional generative models differ from unconditional ones by considering additional information or conditions during the generation process. In unconditional generative models, such as vanilla GANs or VAEs, the model learns to generate samples solely based on the underlying data distribution. However, in conditional generative models, the generation process is conditioned on additional input variables or labels.
+    
+    For example, in the context of image generation, an unconditional generative model might learn to generate various types of images without any specific constraints. On the other hand, a conditional generative model could be trained to generate images of specific categories, such as generating images of different breeds of dogs based on input labels specifying the breed.
+    
+    A scenario where a conditional approach is beneficial is in tasks where precise control over the generated outputs is required or when generating samples belonging to specific categories or conditions. For instance:
+    
+    - In image-to-image translation tasks, where the goal is to convert images from one domain to another (e.g., converting images from day to night), a conditional approach allows the model to learn the mapping between input and output domains based on paired data.
+    - In text-to-image synthesis, given a textual description, a conditional generative model can generate corresponding images that match the description, enabling applications like generating images from textual prompts.
+    
+    Conditional generative models offer greater flexibility and control over the generated outputs by incorporating additional information or conditions, making them well-suited for tasks requiring specific constraints or tailored generation based on input conditions.
+    
+
+---
+
+5. What is mode collapse in the context of GANs, and what strategies can be employed to address it during training?
+- Answer:
+    
+    Mode collapse in the context of Generative Adversarial Networks (GANs) refers to a situation where the generator produces limited diversity in generated samples, often sticking to a few modes or patterns in the data distribution. Instead of capturing the full richness of the data distribution, the generator might only learn to generate samples that belong to a subset of the possible modes, resulting in repetitive or homogeneous outputs.
+    
+    Several strategies can be employed to address mode collapse during training:
+    
+    1. **Architectural Modifications:** Adjusting the architecture of the GAN can help mitigate mode collapse. This might involve increasing the capacity of the generator and discriminator networks, introducing skip connections, or employing more complex network architectures such as deep convolutional GANs (DCGANs) or progressive growing GANs (PGGANs).
+    2. **Mini-Batch Discrimination:** This technique encourages the generator to produce more diverse samples by penalizing mode collapse. By computing statistics across multiple samples in a mini-batch, the discriminator can identify mode collapse and provide feedback to the generator to encourage diversity in the generated samples.
+    3. **Diverse Training Data:** Ensuring that the training dataset contains diverse samples from the target distribution can help prevent mode collapse. If the training data is highly skewed or lacks diversity, the generator may struggle to capture the full complexity of the data distribution.
+    4. **Regularization Techniques:** Techniques such as weight regularization, dropout, and spectral normalization can be used to regularize the training of the GAN, making it more resistant to mode collapse. These techniques help prevent overfitting and encourage the learning of more diverse features.
+    5. **Dynamic Learning Rates:** Adjusting the learning rates of the generator and discriminator dynamically during training can help stabilize the training process and prevent mode collapse. Techniques such as using learning rate schedules or adaptive learning rate algorithms can be effective in this regard.
+    6. **Ensemble Methods:** Training multiple GANs with different initializations or architectures and combining their outputs using ensemble methods can help alleviate mode collapse. By leveraging the diversity of multiple generators, ensemble methods can produce more varied and realistic generated samples.
+
+---
+
+6. How does overfitting manifest in generative models, and what techniques can be used to prevent it during training?
+- Answer:
+    
+    Overfitting in generative models occurs when the model memorizes the training data rather than learning the underlying data distribution, resulting in poor generalization to new, unseen data. Overfitting can manifest in various ways in generative models:
+    
+    1. **Mode Collapse:** One common manifestation of overfitting in generative models is mode collapse, where the generator produces a limited variety of samples, failing to capture the full diversity of the data distribution.
+    2. **Poor Generalization:** Generative models might generate samples that closely resemble the training data but lack diversity or fail to capture the nuances present in the true data distribution.
+    3. **Artifacts or Inconsistencies:** Overfitting can lead to the generation of unrealistic or inconsistent samples, such as distorted images, implausible text sequences, or nonsensical outputs.
+    
+    To prevent overfitting in generative models during training, various techniques can be employed:
+    
+    1. **Regularization:** Regularization techniques such as weight decay, dropout, and batch normalization can help prevent overfitting by imposing constraints on the model's parameters or introducing stochasticity during training.
+    2. **Early Stopping:** Monitoring the performance of the generative model on a validation set and stopping training when performance begins to deteriorate can prevent overfitting and ensure that the model generalizes well to unseen data.
+    3. **Data Augmentation:** Increasing the diversity of the training data through techniques like random cropping, rotation, scaling, or adding noise can help prevent overfitting by exposing the model to a wider range of variations in the data distribution.
+    4. **Adversarial Training:** Adversarial training, where the generator is trained to fool a discriminator that is simultaneously trained to distinguish between real and generated samples, can help prevent mode collapse and encourage the generation of diverse and realistic samples.
+    5. **Ensemble Methods:** Training multiple generative models with different architectures or initializations and combining their outputs using ensemble methods can help mitigate overfitting by leveraging the diversity of multiple models.
+    6. **Cross-Validation:** Partitioning the dataset into multiple folds and training the model on different subsets while validating on the remaining data can help prevent overfitting by providing more reliable estimates of the model's performance on unseen data.
+
+---
+
+7. What is gradient clipping, and how does it help in stabilizing the training process of generative models?
+- Answer:
+    
+    Gradient clipping is a technique used during training to limit the magnitude of gradients, typically applied when the gradients exceed a predefined threshold. It is commonly employed in deep learning models, including generative models like Generative Adversarial Networks (GANs) and Variational Autoencoders (VAEs).
+    
+    Gradient clipping helps stabilize the training process of generative models in several ways:
+    
+    1. **Preventing Exploding Gradients:** In deep neural networks, particularly in architectures with deep layers, gradients can sometimes explode during training, leading to numerical instability and hindering convergence. Gradient clipping imposes an upper bound on the gradient values, preventing them from growing too large and causing numerical issues.
+    2. **Mitigating Oscillations:** During training, gradients can oscillate widely due to the complex interactions between the generator and discriminator (in GANs) or the encoder and decoder (in VAEs). Gradient clipping helps dampen these oscillations by constraining the magnitude of the gradients, leading to smoother and more stable updates to the model parameters.
+    3. **Enhancing Convergence:** By preventing the gradients from becoming too large or too small, gradient clipping promotes more consistent and predictable updates to the model parameters. This can lead to faster convergence during training, as the model is less likely to encounter extreme gradient values that impede progress.
+    4. **Improving Robustness:** Gradient clipping can help make the training process more robust to variations in hyperparameters, such as learning rates or batch sizes. It provides an additional safeguard against potential instabilities that may arise due to changes in the training dynamics.
+
+---
+
+8. Discuss strategies for training generative models when the available dataset is limited.
+- Answer:
+    
+    When dealing with limited datasets, training generative models can be challenging due to the potential for overfitting and the difficulty of capturing the full complexity of the underlying data distribution. However, several strategies can be employed to effectively train generative models with limited data:
+    
+    1. **Data Augmentation:** Augmenting the existing dataset by applying transformations such as rotation, scaling, cropping, or adding noise can increase the diversity of the training data. This helps prevent overfitting and enables the model to learn more robust representations of the data distribution.
+    2. **Transfer Learning:** Leveraging pre-trained models trained on larger datasets can provide a valuable initialization for the generative model. By fine-tuning the pre-trained model on the limited dataset, the model can adapt its representations to the specific characteristics of the target domain more efficiently.
+    3. **Semi-supervised Learning:** If a small amount of labeled data is available in addition to the limited dataset, semi-supervised learning techniques can be employed. These techniques leverage both labeled and unlabeled data to improve model performance, often by jointly optimizing a supervised and unsupervised loss function.
+    4. **Regularization:** Regularization techniques such as weight decay, dropout, and batch normalization can help prevent overfitting by imposing constraints on the model's parameters or introducing stochasticity during training. Regularization encourages the model to learn more generalizable representations of the data.
+    5. **Generative Adversarial Networks (GANs) with Progressive Growing:** Progressive growing GANs (PGGANs) incrementally increase the resolution of generated images during training, starting from low resolution and gradually adding detail. This allows the model to learn more effectively from limited data by focusing on coarse features before refining finer details.
+    6. **Ensemble Methods:** Training multiple generative models with different architectures or initializations and combining their outputs using ensemble methods can help mitigate the limitations of a small dataset. Ensemble methods leverage the diversity of multiple models to improve the overall performance and robustness of the generative model.
+    7. **Data Synthesis:** In cases where the available dataset is extremely limited, data synthesis techniques such as generative adversarial networks (GANs) or variational autoencoders (VAEs) can be used to generate synthetic data samples. These synthetic samples can be combined with the limited real data to augment the training dataset and improve model performance.
+
+---
+
+9. Explain how curriculum learning can be applied in the training of generative models. What advantages does it offer?
+- Answer:
+    
+    Curriculum learning is a training strategy inspired by the way humans learn, where we often start with simpler concepts and gradually move towards more complex ones. This approach can be effectively applied in the training of generative models, a class of AI models designed to generate data similar to some input data, such as images, text, or sound.
+    
+    To apply curriculum learning in the training of generative models, you would start by organizing the training data into a sequence of subsets, ranging from simpler to more complex examples. The criteria for complexity can vary depending on the task and the data. For instance, in a text generation task, simpler examples could be shorter sentences with common vocabulary, while more complex examples could be longer sentences with intricate structures and diverse vocabulary. In image generation, simpler examples might include images with less detail or fewer objects, progressing to more detailed images with complex scenes.
+    
+    The training process then begins with the model learning from the simpler subset of data, gradually introducing more complex subsets as the model's performance improves. This incremental approach helps the model to first grasp basic patterns before tackling more challenging ones, mimicking a learning progression that can lead to more efficient and effective learning.
+    
+    The advantages of applying curriculum learning to the training of generative models include:
+    
+    1. **Improved Learning Efficiency**: Starting with simpler examples can help the model to quickly learn basic patterns before gradually adapting to more complex ones, potentially speeding up the training process.
+    2. **Enhanced Model Performance**: By structuring the learning process, the model may achieve better generalization and performance on complex examples, as it has built a solid foundation on simpler tasks.
+    3. **Stabilized Training Process**: Gradually increasing the complexity of the training data can lead to a more stable training process, reducing the risk of the model getting stuck in poor local minima early in training.
+    4. **Reduced Overfitting**: By effectively learning general patterns from simpler examples before moving to complex ones, the model might be less prone to overfitting on the training data.
+
+---
+
+10. Describe the concept of learning rate scheduling and its role in optimizing the training process of generative models over time.
+- Answer:
+    
+    Learning rate scheduling is a crucial technique in the optimization of neural networks, including generative models, which involves adjusting the learning rate—the step size used to update the model's weights—over the course of training. The learning rate is a critical hyperparameter that determines how much the model adjusts its weights in response to the estimated error each time it is updated. If the learning rate is too high, the model may overshoot the optimal solution; if it's too low, training may proceed very slowly or stall.
+    
+    In the context of training generative models, such as Generative Adversarial Networks (GANs) or Variational Autoencoders (VAEs), learning rate scheduling can significantly impact the model's ability to learn complex data distributions effectively and efficiently.
+    
+    **Role in Optimizing the Training Process:**
+    
+    1. **Avoids Overshooting:** Early in training, a higher learning rate can help the model quickly converge towards a good solution. However, as training progresses and the model gets closer to the optimal solution, that same high learning rate can cause the model to overshoot the target. Gradually reducing the learning rate helps avoid this problem, allowing the model to fine-tune its parameters more delicately.
+    2. **Speeds Up Convergence:** Initially using a higher learning rate can accelerate the convergence by allowing larger updates to the weights. This is especially useful in the early phases of training when the model is far from the optimal solution.
+    3. **Improves Model Performance:** By carefully adjusting the learning rate over time, the model can escape suboptimal local minima or saddle points more efficiently, potentially leading to better overall performance on the generation task.
+    4. **Adapts to Training Dynamics:** Different phases of training may require different learning rates. For example, in the case of GANs, the balance between the generator and discriminator can vary widely during training. Adaptive learning rate scheduling can help maintain this balance by adjusting the learning rates according to the training dynamics.
+    
+    **Common Scheduling Strategies:**
+    
+    - **Step Decay:** Reducing the learning rate by a factor every few epochs.
+    - **Exponential Decay:** Continuously reducing the learning rate exponentially over time.
+    - **Cosine Annealing:** Adjusting the learning rate following a cosine function, leading to periodic adjustments that can help in escaping local minima.
+    - **Warm-up Schedules:** Gradually increasing the learning rate from a small to a larger value during the initial phase of training, which can help in stabilizing the training of very deep models.  
+
+---
 11. Compare and contrast the use of L1 and L2 loss functions in the context of generative models. When might one be preferred over the other?
 - Answer:
     
@@ -70,7 +382,7 @@ Owner: Aritra Roy
 2. Highlight the key differences between models like GPT (Generative Pre-trained Transformer) and BERT (Bidirectional Encoder Representations from Transformers)?
 - Answer:
     
-    ![60_fig_3](https://github.com/aishwaryanr/awesome-generative-ai-guide/blob/main/interview_prep/img/60_fig_3.png)
+    ![60_fig_3](https://github.com/rayari-1729/AI-Engineering/blob/main/interview_prep/img/60_fig_3.png)
     
     Image Source: [https://heidloff.net/article/foundation-models-transformers-bert-and-gpt/](https://heidloff.net/article/foundation-models-transformers-bert-and-gpt/)
     
@@ -174,7 +486,7 @@ Owner: Aritra Roy
     
     **Weighted Sum and Output:** The attention scores are used to create a weighted sum of the value vectors, which forms the output for each element. This process allows the model to dynamically prioritize information from different parts of the input sequence based on the
     
-    ![60_fig_4](https://github.com/aishwaryanr/awesome-generative-ai-guide/blob/main/interview_prep/img/60_fig_4.png)
+    ![60_fig_4](https://github.com/rayari-1729/AI-Engineering/blob/main/interview_prep/img/60_fig_4.png)
     
 
 ---
@@ -211,7 +523,7 @@ Owner: Aritra Roy
 10. What is RLHF, how is it used?
 - Answer:
     
-    ![60_fig_5](https://github.com/aishwaryanr/awesome-generative-ai-guide/blob/main/interview_prep/img/60_fig_5.png)
+    ![60_fig_5](https://github.com/rayari-1729/AI-Engineering/blob/main/interview_prep/img/60_fig_5.png)
     
     Image Source: [https://huggingface.co/blog/rlhf](https://huggingface.co/blog/rlhf)
     
@@ -342,7 +654,8 @@ Owner: Aritra Roy
 
 ---
 
-## Multimodal Models (Includes non-generative models)
+## Multimodal Models
+(Includes non-generative models)
 
 **1.** In multimodal language models, how is information from visual and textual modalities effectively integrated to perform tasks such as image captioning or visual question answering?
 
@@ -365,11 +678,11 @@ Owner: Aritra Roy
     
     Cross-modal attention mechanisms are pivotal in models like VisualBERT and CLIP, enabling these systems to dynamically focus on relevant parts of visual data in response to textual cues and vice versa. This mechanism works by allowing one modality (e.g., text) to guide the attention process in the other modality (e.g., image), thereby highlighting the features or areas that are most relevant to the task at hand.
     
-    ![60_fig_6](https://github.com/aishwaryanr/awesome-generative-ai-guide/blob/main/interview_prep/img/60_fig_6.png)
+    ![60_fig_6](https://github.com/rayari-1729/AI-Engineering/blob/main/interview_prep/img/60_fig_6.png)
     
     **VisualBERT:** Uses cross-modal attention within the transformer architecture to attend to specific regions of an image based on the context of the text. This is crucial for tasks where understanding the visual context is essential for interpreting the textual content correctly.
     
-    ![60_fig_7](https://github.com/aishwaryanr/awesome-generative-ai-guide/blob/main/interview_prep/img/60_fig_7.png)
+    ![60_fig_7]https://github.com/rayari-1729/AI-Engineering/blob/main/interview_prep/img/60_fig_7.png)
     
     **CLIP:** Though not using cross-modal attention in the same way as VisualBERT, CLIP learns to associate images and texts effectively by training on a vast dataset of image-text pairs. It uses contrastive learning to maximize the similarity between corresponding text and image embeddings while minimizing the similarity between non-corresponding pairs.
     
@@ -842,3 +1155,33 @@ Owner: Aritra Roy
     
 
 ---
+
+## Numerical Stability & Optimization
+ 
+**1. How does this implementation of the Sigmoid function achieve "numerical stability"?**
+ 
+```python
+import numpy as np
+ 
+def _sigmoid(z):
+    """Numerically stable sigmoid implementation."""
+    return np.where(z >= 0, 
+                    1 / (1 + np.exp(-z)), 
+                    np.exp(z) / (1 + np.exp(z)))
+```
+ 
+- **Answer:**
+  **The Problem: Floating-Point Overflow**
+  The standard sigmoid is $\sigma(z) = \frac{1}{1 + e^{-z}}$.
+  If you pass a large negative number (e.g., $z = -1000$), the math becomes $e^{-(-1000)} = e^{1000}$. This massive number exceeds the memory limit of standard floating-point variables, causing an **overflow** (returning `inf`). The calculation then becomes $\frac{1}{1 + \text{inf}}$, which results in `NaN` errors that can crash a model.
+  **The Solution: Always Exponentiate Negative Values**
+  This code guarantees that the value passed into `np.exp()` is always **negative or zero**. Since $e^x$ for $x \le 0$ is bounded in $[0, 1]$, it safely underflows to `0` rather than exploding to infinity. It achieves this by splitting the logic into two mathematically equivalent cases:
+  | Input | Formula Used | Why It's Safe |
+  |-------|-------------|---------------|
+  | $z \ge 0$ | $\dfrac{1}{1 + e^{-z}}$ | $z \ge 0$, so exponent $-z \le 0$ → safe |
+  | $z < 0$ | $\dfrac{e^z}{1 + e^z}$ | $z < 0$, so exponent $z < 0$ → safe |
+  Both formulas are **algebraically equivalent** but each ensures the exponent is always negative. Using `np.where` dynamically routes positive and negative inputs to the correct formula, completely avoiding the exponent of a large positive number.
+  **Key Insight:** You can verify they're equivalent by multiplying the top and bottom of the standard formula by $e^z$:
+  $$\frac{1}{1 + e^{-z}} \times \frac{e^z}{e^z} = \frac{e^z}{e^z + 1}$$
+---
+ 
