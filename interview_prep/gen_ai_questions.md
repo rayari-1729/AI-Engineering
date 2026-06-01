@@ -1155,33 +1155,78 @@
     
 
 ---
+ 
+**8. Why can an LLM give different answers to the same question at temperature 0, and what can you do about it at the application layer?**
+ 
+- **Answer:**
+  **The Common (Wrong) Explanation**
+  Most people blame GPU parallelism and floating-point non-associativity: since `(a + b) + c ≠ a + (b + c)` in floating-point, different thread orderings produce different sums. This is *partially* true, but it's not the real culprit — run the same matrix multiplication 1,000 times on a GPU and you get bitwise-identical results. Parallelism alone doesn't explain the drift.
+  **The Real Reason: Batch-Variant Kernels**
+  The real story is about how GPU reduction kernels are scheduled depending on batch size:
+  | Batch Size | Kernel Strategy | Effect |
+  |------------|----------------|--------|
+  | Large (enough cores are busy) | Each summation stays inside a single core — no cross-core combining | ✅ Deterministic |
+  | Small (cores would sit idle) | Summation is split across multiple cores; partial results are combined | ⚠️ Order-dependent → non-deterministic |
+  This property — where the result changes based on how many other requests are in the batch alongside yours — is called **lack of batch invariance** (term from Horace He / Thinking Machines Lab). The kernel is deterministic for any *fixed* batch, but since you never control how many other users' requests are batched with yours on a hosted API, your output drifts between calls.
+  **The Real Fix vs. Application-Layer Workarounds**
+  The proper fix is rewriting reduction kernels to be batch-invariant — but that requires access to the kernel code, which you don't have when calling an API.
+  At the **application layer**, your options are workarounds, not fixes:
+  | Workaround | What it does | What it doesn't fix |
+  |------------|-------------|---------------------|
+  | **Response caching** | Returns stored output → always same answer | Skips the model entirely; cache misses still drift |
+  | **Seeding (where supported)** | Fewer variations for a fixed seed | Seed effectiveness varies by provider; breaks when model version changes |
+  | **Structured output / constrained decoding** | Constrains format (JSON schema, regex) | Same format, still different semantic content inside it |
+  | **Output normalization** | Cleans cosmetic drift (whitespace, casing) | Semantic drift survives — "Queens, New York" vs "New York City" both pass |
+  **Key Takeaway for Interviews**
+  Temperature 0 sets the *sampling* strategy to greedy (always pick the highest-probability token), but it does not eliminate non-determinism introduced at the *hardware/kernel* level before sampling even happens. True determinism requires batch-invariant kernels — a constraint most production APIs don't guarantee.
+---
 
 ## Numerical Stability & Optimization
  
 **1. How does this implementation of the Sigmoid function achieve "numerical stability"?**
- 
+
 ```python
 import numpy as np
- 
+
 def _sigmoid(z):
     """Numerically stable sigmoid implementation."""
     return np.where(z >= 0, 
                     1 / (1 + np.exp(-z)), 
                     np.exp(z) / (1 + np.exp(z)))
 ```
- 
+
 - **Answer:**
+
   **The Problem: Floating-Point Overflow**
+
   The standard sigmoid is $\sigma(z) = \frac{1}{1 + e^{-z}}$.
-  If you pass a large negative number (e.g., $z = -1000$), the math becomes $e^{-(-1000)} = e^{1000}$. This massive number exceeds the memory limit of standard floating-point variables, causing an **overflow** (returning `inf`). The calculation then becomes $\frac{1}{1 + \text{inf}}$, which results in `NaN` errors that can crash a model.
+
+  If you pass a large negative number (e.g., $z = -1000$), the math becomes $e^{-(-1000)} = e^{1000}$. This exceeds the maximum representable value for floating-point numbers:
+
+  | Format | Max Exponent Input to `exp()` | Max Representable Value | Typical Usage |
+  |--------|------------------------------|------------------------|---------------|
+  | **float16** (16-bit) | ~11.1 | ~65,504 | Mixed-precision training |
+  | **float32** (32-bit) | ~88.7 | ~3.4 × 10³⁸ | GPU training, most deep learning |
+  | **float64** (64-bit) | ~709.8 | ~1.8 × 10³⁰⁸ | CPU / NumPy default |
+
+  So with **float32** (the default in PyTorch/TensorFlow), any input $z < -88.7$ causes `np.exp(-z)` → `inf`. The calculation then becomes $\frac{1}{1 + \inf}$ → **`NaN`**, which silently propagates through every subsequent layer and crashes training.
+
+  **float16 is even more dangerous** — it overflows at $z < -11.1$, which is a completely normal activation value in a deep network.
+
   **The Solution: Always Exponentiate Negative Values**
-  This code guarantees that the value passed into `np.exp()` is always **negative or zero**. Since $e^x$ for $x \le 0$ is bounded in $[0, 1]$, it safely underflows to `0` rather than exploding to infinity. It achieves this by splitting the logic into two mathematically equivalent cases:
-  | Input | Formula Used | Why It's Safe |
-  |-------|-------------|---------------|
-  | $z \ge 0$ | $\dfrac{1}{1 + e^{-z}}$ | $z \ge 0$, so exponent $-z \le 0$ → safe |
-  | $z < 0$ | $\dfrac{e^z}{1 + e^z}$ | $z < 0$, so exponent $z < 0$ → safe |
-  Both formulas are **algebraically equivalent** but each ensures the exponent is always negative. Using `np.where` dynamically routes positive and negative inputs to the correct formula, completely avoiding the exponent of a large positive number.
-  **Key Insight:** You can verify they're equivalent by multiplying the top and bottom of the standard formula by $e^z$:
+
+  This code guarantees that the value passed into `np.exp()` is always **negative or zero**. Since $e^x$ for $x \le 0$ is bounded in $[0, 1]$, it safely underflows to `0` rather than exploding to infinity. It achieves this by splitting into two mathematically equivalent cases:
+
+  | Input | Formula Used | Exponent Sign | Safe? |
+  |-------|-------------|---------------|-------|
+  | $z \ge 0$ | $\dfrac{1}{1 + e^{-z}}$ | $-z \le 0$ → always negative | ✅ |
+  | $z < 0$ | $\dfrac{e^z}{1 + e^z}$ | $z < 0$ → already negative | ✅ |
+
+  Using `np.where` dynamically routes positive and negative inputs to the correct formula, completely avoiding any large positive exponent.
+
+  **Key Insight:** Both formulas are algebraically identical — you can verify by multiplying numerator and denominator of the standard formula by $e^z$:
+
   $$\frac{1}{1 + e^{-z}} \times \frac{e^z}{e^z} = \frac{e^z}{e^z + 1}$$
----
- 
+
+  **Quick mental rule for interviews:**
+  > float16 overflows past ~11, float32 past ~89, float64 past ~710. In mixed-precision training (float16 weights, float32 gradients), sigmoid on raw logits without this trick will overflow constantly.
