@@ -15,6 +15,7 @@
 | 5 | [Embeddings](#embeddings) | Word/Sentence Embeddings, Triplet Loss, Quantization, Transfer Learning |
 | 6 | [Training, Inference & Evaluation](#training-inference-and-evaluation) | Overfitting, Perplexity, Hallucination, MoE, BLEU/ROUGE |
 | 7 | [Numerical Stability & Optimization](#numerical-stability--optimization) | Sigmoid, Floating-Point Overflow, Stable Implementations |
+| 8 | [LLM Cost Engineering](#LLM Cost Engineering) | | 
 
 
 ---
@@ -1230,3 +1231,42 @@ def _sigmoid(z):
 
   **Quick mental rule for interviews:**
   > float16 overflows past ~11, float32 past ~89, float64 past ~710. In mixed-precision training (float16 weights, float32 gradients), sigmoid on raw logits without this trick will overflow constantly.
+
+---
+
+## LLM Cost Engineering
+**1. "Your average prompt is 3,200 tokens. Engineers keep adding to the system prompt. At 10M requests/month, every 100 extra tokens costs $15K/month. How do you stop prompt bloat?"**
+
+- **Answer:**
+  **The Common (Wrong) Answer**
+  
+  Most engineers say: *"Review the system prompt monthly and trim manually."* That's not a process — it's a hope. It doesn't scale and misses the highest-ROI lever entirely.
+  **The Missing Piece: Prompt Caching**
+  Not all tokens cost the same. Major providers cache static prompt prefixes — subsequent requests hitting the same prefix pay a fraction of normal input cost:
+  | Provider | Cache Read Cost | Saving |
+  |---|---|---|
+  | Anthropic (Claude) | 0.1× input | ~90% |
+  | OpenAI (GPT-4o) | 0.5× input | ~50% |
+  | Google (Gemini 1.5) | 0.25× input | ~75% |
+  
+  Cache only hits if the prefix is **byte-for-byte identical**. The most common mistake is injecting dynamic content (user IDs, timestamps) early in the prompt — this causes a cache miss on every request. Always structure prompts as:
+  ```
+  [Static system prompt]      ← cached
+  [Static few-shot examples]  ← cached
+  [Retrieved context]         ← not cached
+  [Conversation history]      ← not cached
+  [User message]              ← not cached
+  ```
+ 
+  **The Full Playbook — in priority order:**
+  | Lever | Approach | Saving |
+  |---|---|---|
+  | **Prompt caching** | Mark static prefix with `cache_control`; never inject dynamic content early | 50–90% on static tokens |
+  | **Dynamic assembly** | Route by query type — simple FAQ gets short prompt + 1 chunk, complex query gets full prompt + 5 chunks | 40–60% on context |
+  | **History compression** | Summarise every 5 turns instead of sending full transcript (rolling summary + last 2 turns verbatim) | ~70% on history |
+  | **CI token budgets** | Hard limits per component (system ≤800, context ≤2,000, history ≤500) — fail the build if exceeded | Prevents regression |
+  | **Inference compression** | LLMLingua / LLMZip at inference time on variable context | 30–50% on remainder |
+  
+  **Version control prompts like code.** Every change needs an author, a PR, and a measurable justification — hallucination rate drop from Y% to Z%, not *"feels better."*
+
+
