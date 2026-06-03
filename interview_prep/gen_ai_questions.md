@@ -148,6 +148,75 @@
   Modern RAG frameworks (LangChain, LlamaIndex) largely implement modular RAG patterns, allowing components like the retriever, re-ranker, and generator to be mixed and matched.
 
 ---
+**10. How would you evaluate the quality of LLM-generated text summaries — and how does this generalize to other NLP tasks?**
+
+- **Answer:**
+
+  Use **G-Eval** (LLM-as-a-judge via DeepEval) — a judge model scores outputs using chain-of-thought reasoning against task-specific criteria. Generalizes to any NLP task by swapping the metric set.
+
+  **Core Metrics for Summarization:**
+
+  | Metric | What it measures |
+  |---|---|
+  | **Faithfulness** | No hallucinated content outside the source |
+  | **Coverage** | Key points of the source are captured |
+  | **Conciseness** | No repetition or filler |
+  | **Clarity** | Well-formed and readable |
+  | **Composite** | Sum of all four — max 4.0 |
+
+  **Same framework, different metrics — other tasks:**
+
+  | Task | Swap metrics for |
+  |---|---|
+  | RAG / Context Retrieval | Faithfulness, Context Recall, Context Precision, Answer Relevance |
+  | Translation | Adequacy, Fluency, Terminology |
+  | Chatbot / QA | Correctness, Helpfulness, Groundedness |
+
+  **Evaluation Protocol:**
+
+  Run **5 independent rounds per example**, average the scores — single-round LLM evals have high variance.
+
+  **Pass rate** = fraction of rounds where *all* metrics meet threshold, averaged across examples.
+
+  ```
+  Example (n=200, 5 rounds each):
+  
+  Example #1 scores across 5 rounds:
+    Round 1: Faith=1, Cov=1, Conc=0, Clar=1 → composite=3.0 → pass (threshold ≥ 3.0) ✅
+    Round 2: Faith=1, Cov=0, Conc=1, Clar=1 → composite=3.0 → pass ✅
+    Round 3: Faith=1, Cov=1, Conc=1, Clar=1 → composite=4.0 → pass ✅
+    Round 4: Faith=0, Cov=1, Conc=1, Clar=1 → composite=3.0 → pass ✅
+    Round 5: Faith=1, Cov=1, Conc=0, Clar=0 → composite=2.0 → fail ❌
+  
+  Pass rate for Example #1 = 4/5 = 0.80
+  Avg composite for Example #1 = (3+3+4+3+2)/5 = 3.0
+  
+  Repeat for all 200 examples → average pass rate across dataset
+  ```
+
+  **Statistical Significance — paired t-test:**
+
+  Comparing Model A vs Model B on the same 200 examples:
+
+  ```
+  For each example i:
+    d_i = avg_composite(Model A) - avg_composite(Model B)
+
+  e.g. d_1 = 3.0 - 2.6 = +0.4  (A better on example 1)
+       d_2 = 2.8 - 3.1 = -0.3  (B better on example 2)
+       ...
+
+  t = mean(d) / (std(d) / sqrt(n))
+    = 0.15 / (0.4 / sqrt(200))
+    = 0.15 / 0.028 ≈ 5.3   → p < 0.05 → significant
+  ```
+
+  Paired because the same example is tested under both conditions — removes example-level variance from the comparison.
+
+  **Key Takeaway:**
+  Define your criteria → run multi-round LLM scoring → average → paired t-test. Same pipeline works across summarization, RAG, translation, and QA.
+
+---
 
 ## Generative Models
 
@@ -1074,7 +1143,7 @@
 
 ---
 
-3. When generating sequences with LLMs, how can you handle long context lengths efficiently? Discuss techniques for managing long inputs during real-time inference.
+**3.** When generating sequences with LLMs, how can you handle long context lengths efficiently? Discuss techniques for managing long inputs during real-time inference.
 
 - Answer:
     
@@ -1180,6 +1249,139 @@
   | **Output normalization** | Cleans cosmetic drift (whitespace, casing) | Semantic drift survives — "Queens, New York" vs "New York City" both pass |
   **Key Takeaway for Interviews**
   Temperature 0 sets the *sampling* strategy to greedy (always pick the highest-probability token), but it does not eliminate non-determinism introduced at the *hardware/kernel* level before sampling even happens. True determinism requires batch-invariant kernels — a constraint most production APIs don't guarantee.
+---
+
+**9. What are the core lexical overlap metrics used to evaluate text generation quality, and how are they computed?**
+
+- **Answer:**
+
+  Three standard metrics — all score [0, 1], all computed against a human-written reference:
+
+  | Metric | What it measures |
+  |---|---|
+  | **BLEU** | n-gram precision of prediction vs. reference |
+  | **ROUGE-L** | Longest common subsequence F1 vs. reference |
+  | **METEOR** | Precision/recall with stemming + synonym matching |
+
+  In reward-signal setups (e.g. RLHF), total reward = sum of all enabled signals.
+
+  ---
+
+  **ROUGE-L — LCS-based F1**
+
+  $$ROUGE\text{-}L = \frac{(1 + \beta^2) \cdot P_{lcs} \cdot R_{lcs}}{R_{lcs} + \beta^2 \cdot P_{lcs}}$$
+
+  where $P_{lcs}$ = LCS length / prediction length, $R_{lcs}$ = LCS length / reference length.
+
+  ```
+  Reference:  "the cat sat on the mat"   (6 tokens)
+  Prediction: "the cat sat on a mat"     (6 tokens)
+
+  LCS = "the cat sat on _ mat" = 5 tokens
+
+  P = 5/6 = 0.833
+  R = 5/6 = 0.833
+  ROUGE-L (β=1) = (2 × 0.833 × 0.833) / (0.833 + 0.833) = 0.833
+  ```
+
+  ---
+
+  **METEOR — stemming + synonym aware**
+
+  $$METEOR = F_{mean} \times (1 - \text{Penalty})$$
+  $$\text{Penalty} = 0.5 \times \left(\frac{\text{chunks}}{\text{matches}}\right)^3$$
+
+  $F_{mean}$ = harmonic mean of unigram precision and recall. Penalty increases as matched tokens become more fragmented (fewer contiguous chunks = worse).
+
+  ```
+  Reference:  "quick brown fox"
+  Prediction: "fast brown fox"   ("fast" matches "quick" via synonym)
+
+  Matches = 3 (all unigrams match)
+  P = 3/3 = 1.0,  R = 3/3 = 1.0
+  F_mean = 1.0
+
+  Chunks = 2 ("brown fox" contiguous, "fast" separate)
+  Penalty = 0.5 × (2/3)³ = 0.5 × 0.296 = 0.148
+
+  METEOR = 1.0 × (1 - 0.148) = 0.852
+  ```
+
+  ---
+
+  **BLEU — n-gram precision with brevity penalty**
+
+  $$BLEU = BP \times \exp\left(\sum_{n=1}^{N} w_n \log p_n\right)$$
+  $$BP = \begin{cases} 1 & \text{if } c > r \\ e^{1 - r/c} & \text{if } c \leq r \end{cases}$$
+
+  $BP$ penalises predictions shorter than the reference. $p_n$ = modified n-gram precision for order $n$ (clips counts to avoid repeat-word gaming). Uniform weights $w_n = 1/N$.
+
+  ```
+  Reference:  "the cat sat on the mat"
+  Prediction: "the cat sat"              (too short → BP kicks in)
+
+  c=3, r=6 → BP = e^(1 - 6/3) = e^(-1) = 0.368
+
+  p1 = 3/3 = 1.0   (all unigrams match)
+  p2 = 2/2 = 1.0   (bigrams: "the cat", "cat sat")
+
+  BLEU-2 = 0.368 × exp(0.5×log1.0 + 0.5×log1.0) = 0.368
+  ```
+
+  ---
+
+  **When to use which:**
+
+  | Metric | Strength | Weakness |
+  |---|---|---|
+  | BLEU | Fast, standard benchmark | Precision-only, punishes paraphrase |
+  | ROUGE-L | Captures word order via LCS | No synonym awareness |
+  | METEOR | Most human-aligned of the three | Slower, needs stemmer/synonym lexicon |
+
+  **Key Takeaway:**
+  No single metric is sufficient. In practice, use all three as a composite reward signal — they penalise different failure modes (BLEU: brevity + precision, ROUGE-L: order, METEOR: paraphrase).
+
+---
+
+---
+
+**10. Why are BLEU, ROUGE-L, and METEOR insufficient for evaluating chatbots, agentic systems, or RAG pipelines?**
+
+- **Answer:**
+
+  All three are **lexical overlap metrics** — they compare surface tokens against a fixed reference. This breaks down the moment there's no single correct answer or when meaning matters more than wording.
+
+  **Core limitation:**
+
+  ```
+  Reference:  "The meeting is on Friday."
+  Output A:   "The meeting is on Friday."        → BLEU = 1.0  ✅
+  Output B:   "Your meeting is scheduled Friday." → BLEU = 0.4  ❌ (penalised)
+
+  Both are correct. BLEU cannot know that.
+  ```
+
+  **Why each use-case breaks them:**
+
+  | Task | Why lexical metrics fail |
+  |---|---|
+  | **Chatbot** | No ground-truth reference. Tone, helpfulness, safety — none are token-measurable |
+  | **Agentic RAG** | Correct answer may be paraphrased from 3 retrieved chunks — low overlap, high quality |
+  | **Multi-step reasoning** | Final answer correct but intermediate steps wrong — metrics miss reasoning quality |
+  | **Tool-use / function calling** | Output is structured JSON or an action, not natural language — overlap is meaningless |
+
+  **What to use instead:**
+
+  | Task | Right metric |
+  |---|---|
+  | Chatbot | G-Eval: Helpfulness, Coherence, Safety (LLM-as-judge) |
+  | RAG retrieval | Context Precision, Context Recall, Answer Relevance |
+  | Agentic task completion | Task Success Rate, Step Accuracy, Groundedness |
+  | Open-ended QA | Faithfulness + human eval or LLM-as-judge |
+
+  **Key Takeaway:**
+  BLEU/ROUGE/METEOR are valid as fast reward signals during training on well-defined generation tasks (summarization, translation). For anything involving reasoning, retrieval, or open-ended output — switch to semantic evaluation (G-Eval, RAG-specific metrics, or task success rate).
+
 ---
 
 ## Numerical Stability & Optimization
