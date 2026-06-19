@@ -20,7 +20,7 @@
 
 ---
 
-## Retrieval-Augmented Generation (RAG)
+## Retrieval-Augmented Generation (RAG) ([RAG COOKBOOK](https://fareedkhan-dev.github.io/rag-cookbook-2026/))
  
 **1. What is Retrieval-Augmented Generation (RAG), and why is it used?**
  
