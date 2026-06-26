@@ -20,8 +20,10 @@
 
 ---
 
-## Retrieval-Augmented Generation (RAG) ([RAG COOKBOOK](https://fareedkhan-dev.github.io/rag-cookbook-2026/))
- 
+## Retrieval-Augmented Generation (RAG)
+
+📚 **Reference:** [RAG Cookbook](https://fareedkhan-dev.github.io/rag-cookbook-2026/)
+
 **1. What is Retrieval-Augmented Generation (RAG), and why is it used?**
  
 - **Answer:**
@@ -1106,6 +1108,34 @@
     
     The margin parameter in triplet or contrastive loss functions specifies the desired minimum difference between the distances of positive and negative pairs to the anchor. Adjusting the margin impacts the strictness of the separation enforced in the embedding space, influencing both the learning process and the quality of the resulting embeddings. A larger margin encourages embeddings to be spread further apart, potentially improving the model's discrimination capabilities, but if set too high, it might lead to training difficulties or degraded performance due to an overly stringent separation criterion.
     
+
+---
+
+**15. Why is a Unidirectional LSTM not the best choice for Sentiment Analysis? What would you use instead?**
+
+- Answer :
+   A Unidirectional LSTM processes text only from **left to right**, meaning each word only has access to the previous context. This becomes a limitation in sentiment analysis because the overall sentiment often depends on words appearing later in the sentence. For example, in the sentence *"The phone looks great but the battery is terrible,"* when the model reads **"great"**, it has not yet seen **"battery is terrible"**. As a result, it may not fully capture the final sentiment.
+
+A BiLSTM addresses this issue by processing the sentence in both forward and backward directions, allowing each word representation to incorporate both past and future context. This generally leads to better performance than a unidirectional LSTM.
+
+However, for modern NLP applications, I would typically choose a Transformer-based model such as **BERT** or **DistilBERT**. These models use self-attention to capture relationships between all words simultaneously, learn richer contextual representations, and usually achieve higher accuracy than LSTMs. They also train more efficiently on GPUs because they process tokens in parallel rather than sequentially.
+
+---
+
+**16. For an LLM-based ABSA pipeline, which embedding model would you use? Why not use BERT embeddings?**
+
+- Answer :
+   For an LLM-based Aspect-Based Sentiment Analysis (ABSA) pipeline, I would use a sentence embedding model such as **BGE (BAAI General Embedding)** or **E5 (Embedding from Weakly-supervised Learning)** instead of vanilla BERT embeddings.
+
+The reason is that BERT was trained primarily for **Masked Language Modeling (MLM)** and **Next Sentence Prediction (NSP)**. Although it produces contextual token embeddings, it was not specifically optimized for measuring sentence-level semantic similarity. Therefore, sentences with similar meanings may not always be close together in the embedding space.
+
+Models like **BGE** and **E5** are trained using **contrastive learning**, where semantically similar sentences are explicitly pulled closer together while dissimilar ones are pushed apart. This produces much higher-quality sentence embeddings for tasks such as semantic search, clustering, retrieval, and topic discovery.
+
+In an ABSA pipeline, after the LLM extracts aspects and opinions, these embedding models help group semantically similar opinions like **"battery drains quickly"**, **"poor battery backup"**, and **"battery dies fast"** into the same cluster. This leads to cleaner topic discovery and better business insights.
+
+**Typical Production Pipeline:**
+
+Reviews → LLM (ABSA) → Aspect & Opinion Extraction → BGE/E5 Embeddings → UMAP → HDBSCAN/KMeans → Topic Labeling → Dashboard
 
 ---
 
