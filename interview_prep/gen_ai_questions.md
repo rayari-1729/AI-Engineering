@@ -90,18 +90,54 @@
 **6. How do you evaluate a RAG system?**
  
 - **Answer:**
-  RAG evaluation covers both retrieval and generation quality:
-  **Retrieval Metrics:**
-  - **Hit Rate / Recall@k:** Fraction of queries where the correct chunk appears in top-k retrieved results.
-  - **MRR (Mean Reciprocal Rank):** Average of reciprocal ranks of the first correct retrieval.
-  - **NDCG (Normalized Discounted Cumulative Gain):** Accounts for position of relevant documents.
-  **Generation Metrics:**
-  - **Faithfulness:** Is the answer supported by the retrieved context? (avoids hallucination)
-  - **Answer Relevance:** Does the answer address the user's question?
-  - **Context Precision/Recall:** How much of the retrieved context is relevant / how much relevant info was retrieved?
-  **End-to-End Frameworks:**
-  - **RAGAS:** An open-source framework specifically designed to evaluate RAG pipelines on faithfulness, answer relevance, context precision, and context recall.
-  - **TruLens:** Provides evaluations using LLM-as-a-judge for RAG quality.
+A RAG pipeline can fail in two independent places — bad retrieval or bad generation — so evaluation needs to look at both layers separately before judging the system end-to-end. A wrong answer could mean the retriever missed the right chunk, or the generator ignored context that was actually correct. Treating it as one black box makes debugging nearly impossible.
+
+**Retrieval Metrics** — is the system finding the right information, and ranking it well?
+- **Recall@k** – Does the correct chunk appear anywhere in the top-k results? This is the baseline check, but it's binary and ignores *where* in the top-k the chunk landed.
+- **MRR (Mean Reciprocal Rank)** – Rewards the correct chunk appearing *early*. A hit at position 9 counts for Recall@k but is nearly useless in practice if the generator's context window gets diluted by irrelevant chunks ahead of it.
+- **NDCG** – Extends this further for queries with multiple relevant chunks of varying importance, weighting by both relevance and rank position rather than treating relevance as binary.
+- **Context Precision** – Of what was retrieved, how much was actually relevant? Catches noisy retrieval.
+- **Context Recall** – Of what *should* have been retrieved, how much was actually found? Catches missed context.
+
+**Generation Metrics** — given the right context, did the model use it well?
+- **Faithfulness / Groundedness** – Is every claim in the answer traceable back to the retrieved context? This is the main hallucination check — a fluent but ungrounded answer is often more dangerous than an obviously wrong one.
+- **Answer Relevance** – Does the answer address what the user actually asked? A response can be fully faithful to the context and still miss the question, which happens often when retrieval pulls in tangentially related chunks.
+- **Citation Accuracy** – If the system cites sources, does the citation actually support the specific claim next to it, not just exist somewhere nearby?
+
+Most teams don't hand-roll these metrics individually — they lean on end-to-end frameworks that bundle them together:
+- **RAGAS** – purpose-built for RAG; scores faithfulness, answer relevance, context precision, and recall without needing labeled ground truth per query.
+- **TruLens** – uses LLM-as-a-judge on the "RAG triad" (context relevance, groundedness, answer relevance), plus tracing to pinpoint where a pipeline broke.
+- **DeepEval / Arize Phoenix** – similar idea, with stronger production tracing and test-suite integration — worth a mention if you want to signal breadth.
+
+![60_fig_9](https://github.com/rayari-1729/AI-Engineering/blob/main/interview_prep/img/60_fig_9.png)
+
+*Interview one-liner:* "I evaluate retrieval and generation separately, then end-to-end — because great retrieval with poor generation still hallucinates, and great generation over bad retrieval just produces confident nonsense."
+
+---
+**8.How do you evaluate an Agentic RAG system?**
+- **Answer:**
+- Agentic RAG adds a decision-making layer on top of classic RAG — instead of a fixed "retrieve then generate" pipeline, the model decides *whether* to retrieve, *which* tool or source to use, *how many times* to call it, and *when* it has enough information to answer. That means evaluation has to cover everything a normal RAG system needs (is the retrieved context good, is the answer grounded in it) *plus* a new layer of agentic behavior (did it make the right decisions to get there). Judging only the final answer can hide a system that got the right result by accident — for example, calling the wrong tool first, retrying blindly, or retrieving redundant context before stumbling onto the right chunk.
+
+Because of this, evaluation breaks into three layers rather than two:
+
+| Layer | Core question | Key metrics |
+|---|---|---|
+| **Retrieval quality** | Did the system find the right context? | Recall@k, MRR, NDCG, Context Precision, Context Recall |
+| **Generation quality** | Did it use that context well? | Faithfulness/Groundedness, Answer Relevance, Citation Accuracy |
+| **Agentic behavior** | Did it *decide and act* correctly to get there? | Tool Selection, Parameter Correctness, Task Completion, Error Recovery |
+
+The first two layers are the same as classic RAG evaluation (see Q6) — a poor answer is still either a retrieval problem or a generation problem underneath, regardless of how many tools were involved in getting there. The new layer is what actually makes agentic RAG harder to evaluate well:
+
+- **Tool Selection** – Given the query, did the agent pick the right tool or data source (vector DB vs. SQL vs. web search vs. no retrieval at all)? A common failure is over-retrieving — calling a search tool for a question the model could've answered directly, adding latency and hallucination risk for no benefit.
+- **Parameter Correctness** – Was the tool called with valid, well-formed inputs (correct filters, right date range, properly typed arguments)? A right tool choice with a malformed query still fails silently — you get a low-relevance retrieval that *looks* like a retrieval-quality problem but is actually an agent-reasoning problem.
+- **Task Completion** – Did the agent actually finish the user's goal end-to-end, including multi-step cases where it needed to chain 2–3 tool calls (e.g., retrieve → filter → summarize)? This is closer to a pass/fail outcome metric than the granular per-step ones above.
+- **Error Recovery** – When a tool call fails, times out, or returns empty results, does the agent retry sensibly, fall back to another tool, or does it hallucinate an answer instead of surfacing the failure? This is often the single biggest gap between a demo-quality agent and a production one.
+
+In practice, evaluating this layer needs *trace-level* data, not just final input/output pairs — you need to see the full sequence of tool calls, their parameters, and their results to tell whether a bad final answer came from bad retrieval, bad generation, or a bad decision upstream of both. This is where tracing frameworks (LangSmith, Arize Phoenix, TruLens) matter as much as scoring frameworks (RAGAS) — RAGAS-style metrics score the retrieval/generation layers well, but agentic behavior scoring generally leans on LLM-as-a-judge over the full trace, or on hand-labeled task-completion benchmarks for known query types.
+![60_fig_10](https://github.com/rayari-1729/AI-Engineering/blob/main/interview_prep/img/60_fig_10.png)
+
+*Interview one-liner:* "Agentic RAG fails in three possible places — bad retrieval, bad generation, or bad decision-making about tools — so I evaluate all three layers using trace-level data, not just the final answer, because a correct-looking response can still hide an agent that got there inefficiently or by accident."
+
 ---
  
 **7. What are common failure modes in RAG systems and how can they be mitigated?**
@@ -147,7 +183,8 @@
   | **Naive RAG** | Basic retrieve-then-generate pipeline | Simple, fragile, limited optimization |
   | **Advanced RAG** | Adds pre-retrieval (query rewriting) and post-retrieval (re-ranking, compression) steps | Better accuracy, handles edge cases |
   | **Modular RAG** | Treats each step as an independent, swappable module | Highly flexible; enables custom pipelines, iterative retrieval, and task-specific optimization |
-  Modern RAG frameworks (LangChain, LlamaIndex) largely implement modular RAG patterns, allowing components like the retriever, re-ranker, and generator to be mixed and matched.
+
+Modern RAG frameworks (LangChain, LlamaIndex) largely implement modular RAG patterns, allowing components like the retriever, re-ranker, and generator to be mixed and matched.
 
 ---
 **10. How would you evaluate the quality of LLM-generated text summaries — and how does this generalize to other NLP tasks?**
