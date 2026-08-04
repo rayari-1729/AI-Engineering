@@ -279,7 +279,31 @@ Systems for giving AI applications persistent memory and context across interact
 
 
 ---
----
+## Distributed Training Reference 
+- Anyscale and Ray:
+     - [Getting Started with Ray on Anyscale](https://console.anyscale.com/register/v2)
+     - [Ray Train Specialization Learning Path](https://courses.anyscale.com/bundles/ray-train-special)
+ 
+- Distributed Training
+     - [Distributed Training Fundamentals: From Single GPU to Clusters](https://debnsuma.github.io/my-blog/posts/distributed-training-from-scratch/)
+     - [Fully Sharded Data Parallelism (FSDP) Blog by Bar Rozenman](https://www.barrozenman.com/blog/fsdp/)
+     - [Advanced Large Language Models [IIT Delhi]](https://lcs2.in/llm2501)
+     - [TinyML and Efficient Deep Learning Computing [MIT]](https://hanlab.mit.edu/courses/2024-fall-65940)
+     - [Training LLMs on GPU Clusters](https://huggingface.co/spaces/nanotron/ultrascale-playbook?section=high-level_overview)
+     - [CS231N Lecture 11, Large Scale Distributed Training](https://www.youtube.com/watch?v=9MvD-XsowsE&t=1068s)
+
+- GPU/System Engineering
+     - [AI Systems Performance Engineering](https://www.amazon.com/Systems-Performance-Engineering-Optimizing-Inference/dp/B0F47689K8/)
+     - [Supercomputing for AI](https://jorditorresbcn.github.io/supercomputing-for-ai-book/)
+     - [GPU Engineering](https://gpuengineering.com/)
+- LLM and Advance Deep Learning
+     - [The School of AI](https://theschoolof.ai/)
+     - [Understanding Deep Learning](https://udlbook.github.io/udlbook/)
+     - [Building LLMs from scratch](https://www.youtube.com/playlist?list=PLPTV0NXA_ZSgsLAr8YCgCwhPIJNNtexWu)
+- Ray, PyTorch and DeepSpeed
+     - [Ray Train Documentation](https://docs.ray.io/en/latest/train/train.html)
+     - [PyTorch FSDP2 Documentation](https://docs.pytorch.org/docs/stable/distributed.fsdp.fully_shard.html)
+     - [deepspeed-an-alternative-to-fsdp2](https://debnsuma.github.io/my-blog/posts/fsdp-ray-train/#deepspeed-an-alternative-to-fsdp2)  
 ---
 
 
