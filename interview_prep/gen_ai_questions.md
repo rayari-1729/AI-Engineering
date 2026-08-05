@@ -465,6 +465,22 @@ Modern RAG frameworks (LangChain, LlamaIndex) largely implement modular RAG patt
     - **Spectral Normalization:** Although not a gradient penalty per se, spectral normalization is another technique to control the Lipschitz constant of the discriminator by normalizing its weights, which indirectly affects the gradients and contributes to training stability.
 
 ---
+**13. What is BERT? What is GPT? How are they different?**
+ 
+Both are Transformer-based, but use different halves and training objectives.
+ 
+- **BERT** = **B**idirectional **E**ncoder. Uses the Transformer **encoder**; each token attends to **both left and right** context. Trained with **Masked Language Modeling** (predict randomly masked tokens) + Next Sentence Prediction. → Great for *understanding* tasks: classification, NER, sentence embeddings, retrieval.
+- **GPT** = **G**enerative **P**re-trained **T**ransformer. Uses the Transformer **decoder**; **causal/unidirectional** attention (a token sees only tokens *before* it). Trained to **predict the next token**. → Great for *generation*: chat, text completion, reasoning.
+| | BERT | GPT |
+|---|---|---|
+| Architecture | Encoder | Decoder |
+| Attention | Bidirectional | Causal (left-to-right) |
+| Objective | Masked LM | Next-token prediction |
+| Best at | Understanding | Generation |
+ 
+**One-liner:** BERT *reads* the whole sentence at once (understanding); GPT *writes* one token at a time (generation).
+
+---
 
 ## Large Language Models
 
@@ -763,6 +779,28 @@ Modern RAG frameworks (LangChain, LlamaIndex) largely implement modular RAG patt
     
 
 ---
+**6. How do you handle image + text together in a transformer? How do you tokenize images? (ViT / patch embeddings)**
+ 
+A Transformer only eats a **sequence of vectors (tokens)**. Text is already a token sequence; the trick is turning an image into one too.
+ 
+**Tokenizing an image — ViT (Vision Transformer) approach:**
+1. **Split into patches:** cut the image (e.g. 224×224) into fixed-size patches (e.g. 16×16) → 196 patches. Each patch is the "word."
+2. **Flatten + linear projection:** flatten each patch (16×16×3 = 768 values) and pass through a linear layer → a patch embedding vector. This is the **patch embedding** — the image equivalent of a token embedding.
+3. **Add positional embeddings:** since attention is order-agnostic, add position info so the model knows where each patch sits.
+4. **[CLS] token:** prepend a learnable classification token whose final state is used for image-level prediction.
+```python
+# Conv2d with kernel=stride=patch_size does "split + flatten + project" in one op
+patch_embed = nn.Conv2d(3, d_model, kernel_size=16, stride=16)
+tokens = patch_embed(image).flatten(2).transpose(1, 2)  # (B, num_patches, d_model)
+```
+ 
+**Combining image + text (multimodal):** once the image is a sequence of patch tokens and text is a sequence of word tokens, you can:
+- **Concatenate** both token sequences and feed to one shared Transformer (early fusion, e.g. LLaVA-style: image tokens projected into the LLM's embedding space, then prepended to the text tokens).
+- **Cross-attention:** let text tokens (Query) attend to image tokens (Key/Value), e.g. BLIP/Flamingo.
+- **Dual-encoder:** encode each modality separately and align embeddings via contrastive loss, e.g. CLIP.
+**Key point:** the Transformer machinery doesn't change — you just convert every modality into tokens in a shared embedding space, and the same attention handles the rest.
+---
+
 
 ## Multimodal Models
 (Includes non-generative models)
