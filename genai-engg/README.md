@@ -114,4 +114,4 @@ Also see: **[GLOSSARY.md](GLOSSARY.md)** for terms used throughout, and **[code/
 
 ## Contributing
 
-Found something outdated or wrong? Have a better diagram or a production war story? PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+Found something outdated or wrong? Have a better diagram or a production war story? PRs welcome.
