@@ -22,7 +22,7 @@ Not interview flash cards. Each topic is explained the way a senior AI engineer 
 
 ---
 
-## All 20 questions
+## All 21 questions
 
 | # | Question | Chapter |
 |---|---|---|
@@ -46,6 +46,7 @@ Not interview flash cards. Each topic is explained the way a senior AI engineer 
 | 18 | [Preventing prompt injection attacks](chapters/09-security-privacy-ethics.md#q18-how-do-you-prevent-prompt-injection-attacks) | Ch 9 · Security & Ethics |
 | 19 | [LoRA, QLoRA and Mixture of Adapters](chapters/08-fine-tuning-lora-qlora-moa.md#q19-lora-qlora-and-mixture-of-adapters) | Ch 8 · Fine-tuning |
 | 20 | [AI ethics and sanitizing sensitive user data from prompts](chapters/09-security-privacy-ethics.md#q20-ai-ethics-and-sanitizing-sensitive-user-data-from-prompts) | Ch 9 · Security & Ethics |
+| 21 | [What is the production fallback strategy for RAG?](chapters/10-rag-production-fallbacks.md#q21-what-is-the-production-fallback-strategy-for-rag) | Ch 10 · RAG in Production |
 
 ---
 
@@ -62,6 +63,8 @@ flowchart LR
     C3["3 · Document AI<br/>Q6, Q7"] --> C4
     C7 --> C9["9 · Security & Ethics<br/>Q18, Q20"]
     C8 --> C9
+    C2 --> C10["10 · RAG Fallbacks<br/>Q21"]
+    C9 --> C10
 ```
 
 | Chapter | Topics | Questions |
@@ -75,6 +78,7 @@ flowchart LR
 | [7 · Scaling Agents on the Web](chapters/07-scaling-agents-sse-runtimes.md) | Scaling SSE, Python vs TS/Bun vs Go on one CPU | Q13, Q16 |
 | [8 · Fine-tuning](chapters/08-fine-tuning-lora-qlora-moa.md) | LoRA, QLoRA, multi-LoRA serving, mixture of adapters | Q19 |
 | [9 · Security, Privacy & Ethics](chapters/09-security-privacy-ethics.md) | Prompt injection defense, PII sanitization, ethics → controls | Q18, Q20 |
+| [10 · RAG in Production](chapters/10-rag-production-fallbacks.md) | Fallback ladders, evidence gates, circuit breakers, graceful degradation | Q21 |
 
 Also see: **[GLOSSARY.md](GLOSSARY.md)** for terms used throughout, and **[code/](code/)** for runnable examples.
 
@@ -84,7 +88,7 @@ Also see: **[GLOSSARY.md](GLOSSARY.md)** for terms used throughout, and **[code/
 
 - **Building agents?** 2 → 1 → 5 → 6 → 9
 - **Self-hosting models?** 4 → 1 → 8
-- **Document / RAG pipelines?** 3 → 2 → 9
+- **Document / RAG pipelines?** 3 → 2 → 10 → 9
 - **Backend / platform engineer?** 7 → 6 → 5 → 4
 
 ---
@@ -105,13 +109,15 @@ Also see: **[GLOSSARY.md](GLOSSARY.md)** for terms used throughout, and **[code/
 │   ├── 06-protocols-mcp-a2a-acp-skills.md
 │   ├── 07-scaling-agents-sse-runtimes.md
 │   ├── 08-fine-tuning-lora-qlora-moa.md
-│   └── 09-security-privacy-ethics.md
+│   ├── 09-security-privacy-ethics.md
+│   └── 10-rag-production-fallbacks.md
 └── code/
-    └── pii_pseudonymizer.py
+    ├── pii_pseudonymizer.py
+    └── rag_fallback.py
 ```
 
 ---
 
 ## Contributing
 
-Found something outdated or wrong? Have a better diagram or a production war story? PRs welcome.
+Found something outdated or wrong? Have a better diagram or a production war story? PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
