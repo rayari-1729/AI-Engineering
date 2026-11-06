@@ -1,0 +1,413 @@
+# FAANG & AI-Native System Design + Coding Patterns
+
+A curated collection of system design problems and coding patterns frequently asked in interviews at top tech and AI companies, with a focus on what changed for 2025-2026 loops.
+
+> See also: [company_interview_processes.md](company_interview_processes.md) for per-company interview loops at AI labs, and [notebooks/](notebooks/) for runnable coding practice.
+
+---
+
+## 25 Must-Do System Design Problems
+
+A curated collection of system design problems frequently asked in technical interviews at top technology companies. Each is categorized by complexity (Low, Medium, High) with the companies and roles that commonly ask it.
+
+| # | Problem | Complexity | Companies | Roles | Resources |
+|---|---------|------------|-----------|-------|-----------|
+| 1 | Design a URL Shortening Service (like Bit.ly) | Medium | Google, Amazon, Microsoft, Uber | SWE, SDE, Backend | [System Design Primer](https://github.com/donnemartin/system-design-primer/blob/master/solutions/system_design/pastebin/README.md), [Grokking](https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/tiny-url-design-tinyurl) |
+| 2 | Design Twitter | High | Twitter, Meta, Google, Microsoft | SWE, SDE, Full-stack | [System Design Primer](https://github.com/donnemartin/system-design-primer/blob/master/solutions/system_design/twitter/README.md), [High Scalability](http://highscalability.com/blog/2013/7/8/the-architecture-twitter-uses-to-deal-with-150m-active-users.html) |
+| 3 | Design a Rate Limiter | Medium | Stripe, Cloudflare, Google, Amazon | SDE, SRE, Backend | [Stripe Engineering Blog](https://stripe.com/blog/rate-limiters), [Grokking](https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/API-Rate-Limiter) |
+| 4 | Design Netflix or YouTube (Video Streaming Service) | High | Netflix, YouTube, Amazon, Meta | SWE, Media, Backend | [Netflix Tech Blog](https://netflixtechblog.com/) |
+| 5 | Design an Online Chat System (like WhatsApp) | Medium | Meta, Signal, Snap, Microsoft | SWE, Backend, Mobile | [WhatsApp Architecture](https://highscalability.com/the-whatsapp-architecture-facebook-bought-for-19-billion/), [Grokking](https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/messenger-design) |
+| 6 | Design Uber or Lyft | High | Uber, Lyft, DoorDash, Instacart | SWE, Backend, Mobile | [Uber Engineering Blog](https://eng.uber.com/), [Grokking](https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/uber-backend) |
+| 7 | Design a Web Crawler | Medium | Google, Microsoft, Amazon, ByteDance | SWE, Search, Data | [Google Research](https://research.google/pubs/web-crawling/), [System Design Primer](https://github.com/donnemartin/system-design-primer/blob/master/solutions/system_design/web_crawler/README.md) |
+| 8 | Design Dropbox / Google Drive | High | Dropbox, Google, Microsoft, Box | SWE, Storage, Cloud | [Dropbox Tech Blog](https://dropbox.tech/) |
+| 9 | Design a Distributed Key-Value Store | High | Amazon, Google, Redis Labs, MongoDB | SWE, Database, Cloud | [DynamoDB Paper](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf), [Google Spanner](https://research.google/pubs/pub39966/) |
+| 10 | Design Instagram | Medium | Meta, Snap, ByteDance, Pinterest | SWE, Full-stack, Mobile | [Meta Engineering: Instagram](https://engineering.fb.com/tag/instagram/), [Hello Interview](https://www.hellointerview.com/learn/system-design/problem-breakdowns/instagram) |
+| 11 | Design a Payment System | High | Stripe, PayPal, Square, Rippling | SWE, Financial, Security | [Stripe Engineering Blog](https://stripe.com/blog/engineering), [Grokking](https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/payment-processing-system-design) |
+| 12 | Design a Search Autocomplete System | Medium | Google, Microsoft, Amazon, LinkedIn | SWE, Search, UX | [Grokking](https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/typeahead-suggestion) |
+| 13 | Design a Recommendation System | High | Netflix, Amazon, Spotify, TikTok | SWE, ML, Data | [Netflix Recommendation](https://netflixtechblog.com/system-architectures-for-personalization-and-recommendation-e081aa94b5d8), [Amazon ML Blog](https://aws.amazon.com/blogs/machine-learning/) |
+| 14 | Design an Object Storage Service (like Amazon S3) | High | Amazon, Google, Microsoft, Cloudflare | SWE, Storage, Cloud | [S3 Documentation](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html), [Dynamo Paper](https://www.allthingsdistributed.com/2007/10/amazons_dynamo.html) |
+| 15 | Design a Notification Service | Medium | Meta, Slack, Discord, Salesforce | SWE, Mobile, Cloud | [Slack Engineering Blog](https://slack.engineering/), [Grokking](https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/notification-service-design) |
+| 16 | Design Airbnb or Booking.com | High | Airbnb, Booking, Expedia, Tripadvisor | SWE, Full-stack, Search | [Airbnb Engineering Blog](https://medium.com/airbnb-engineering), [System Design Interview Vol 2](https://www.amazon.com/System-Design-Interview-Insiders-Guide/dp/1736049119) |
+| 17 | Design a Content Delivery Network (CDN) | High | Cloudflare, Akamai, Fastly, AWS | SWE, Infrastructure, Network | [Cloudflare Blog](https://blog.cloudflare.com/), [AWS Architecture](https://aws.amazon.com/blogs/architecture/) |
+| 18 | Design a Distributed Cache | Medium | Meta, Amazon, Google, Redis | SWE, Infrastructure, Cloud | [Scaling Memcache at Facebook](https://www.usenix.org/conference/nsdi13/technical-sessions/presentation/nishtala), [Redis Cluster Spec](https://redis.io/docs/latest/operate/oss_and_stack/reference/cluster-spec/), [Grokking](https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/key-value-store) |
+| 19 | Design a Task Scheduler | Medium | Google, Amazon, OpenAI, Cursor | SWE, Cloud, Data | [Apache Airflow](https://airflow.apache.org/docs/apache-airflow/stable/index.html), [AWS Architecture](https://aws.amazon.com/blogs/architecture/) |
+| 20 | Design a Distributed Message Queue | High | LinkedIn, Confluent, Amazon, Google | SWE, Cloud, Infrastructure | [Kafka Architecture](https://kafka.apache.org/documentation/#design), [AWS Architecture](https://aws.amazon.com/blogs/architecture/) |
+| 21 | Design a Distributed Logging System | Medium | Splunk, Elastic, Datadog, New Relic | SWE, DevOps, SRE | [Elastic Blog](https://www.elastic.co/blog/), [Splunk Architecture](https://help.splunk.com/en/splunk-enterprise/administer/distributed-deployment-manual/10.4/implement-a-distributed-deployment) |
+| 22 | Design Google Maps | High | Google, Apple, Uber, Tesla | SWE, Maps, Mobile | [Google Maps Platform Blog](https://mapsplatform.google.com/resources/blog/), [System Design Interview Vol 2](https://www.amazon.com/System-Design-Interview-Insiders-Guide/dp/1736049119) |
+| 23 | Design an AI Large Language Model (LLM) System | High | OpenAI, Google, Microsoft, Anthropic | SWE, ML, AI | [GPT-4 Technical Report](https://arxiv.org/abs/2303.08774), [A Survey of Large Language Models](https://arxiv.org/abs/2303.18223) |
+| 24 | Design a Real-time Collaboration Editor (like Google Docs) | High | Google, Microsoft, Notion, Figma | SWE, Frontend, Real-time | [How Figma's Multiplayer Works](https://www.figma.com/blog/how-figmas-multiplayer-technology-works/), [Hello Interview: Google Docs](https://www.hellointerview.com/learn/system-design/problem-breakdowns/google-docs), [System Design Interview Vol 2](https://www.amazon.com/System-Design-Interview-Insiders-Guide/dp/1736049119) |
+| 25 | Design a Stock Trading System | High | Robinhood, Jane Street, Citadel, JPMorgan | SWE, Financial, Real-time | [Hello Interview: Robinhood](https://www.hellointerview.com/learn/system-design/problem-breakdowns/robinhood), [System Design Interview Vol 1](https://www.amazon.com/System-Design-Interview-insiders-Second/dp/B08CMF2CQF) |
+
+---
+
+## Latest System Design Questions for 2025-2026
+
+The system design landscape is rapidly evolving with new technologies and architectural patterns. Here are the most recent system design problems being asked in 2025-2026 interviews at top tech companies:
+
+| # | Problem | Complexity | Companies | Roles | Key Considerations |
+|---|---------|------------|-----------|-------|-------------------|
+| 1 | Design a Multi-Agent AI Orchestration System | Very High | OpenAI, Microsoft, Google, Anthropic | SWE-AI, ML Infra | Coordination protocols, safety mechanisms, observability, task delegation |
+| 2 | Design an Edge Computing Platform for IoT | High | AWS, Google, Microsoft, Tesla | Cloud, IoT, Edge | Local processing, sync strategies, bandwidth optimization, hardware constraints |
+| 3 | Design a Privacy-Preserving Analytics System | High | Apple, Meta, Google, Snap | Privacy, Data | Differential privacy, homomorphic encryption, federated analytics, compliance |
+| 4 | Design a Real-time AI-assisted Coding Platform | High | GitHub, Microsoft, Google, JetBrains | SWE, Developer Tools | LLM integration, IDE extensions, model latency, context management |
+| 5 | Design a Serverless Data Pipeline System | Medium | AWS, Google, Snowflake, Databricks | Data, Cloud | Event-driven processing, cost optimization, scaling, observability |
+| 6 | Design a Batch Inference API for a GPU Cluster | High | NVIDIA, Anthropic, OpenAI | ML Infra, Backend | Request queuing, batching under GPU memory limits, GPU-aware load balancing, partial-failure handling |
+| 7 | Design a Webhook Delivery System | High | Stripe, OpenAI | Backend, Platform | At-least-once delivery, retries with backoff and jitter, idempotency keys, dead-letter queue, per-endpoint rate limits |
+| 8 | Design an LLM Review Summarization Pipeline | High | Google | ML, Trust and Safety | Review ingestion, prompt-injection defence, data sanitization, PII handling, dashboard freshness (reported Oct 2026) |
+| 9 | Design a Low-latency Global ML Inference System | High | OpenAI, Google, Anthropic, Meta | ML Infra, Cloud | Load balancing, model serving, region optimization, model quantization |
+| 10 | Design an LLM Inference Batching System (one GPU, up to 100 inputs per batch, synchronous callers) | High | Anthropic | ML Infra, Backend | Request intake and batching window, GPU routing, matching responses back to callers, backpressure, tail latency |
+
+### AI-Native System Design Questions (New in 2026)
+
+These questions reflect the shift toward AI-native architectures in 2026 interviews:
+
+| # | Problem | Complexity | Companies | Key Considerations |
+|---|---------|------------|-----------|-------------------|
+| 1 | Design a Hallucination-Free Banking Chatbot | High | Stripe, JPMorgan, Google | Domain-constrained generation, citation verification, regulatory compliance |
+| 2 | Design a Perplexity.ai / LLM-Powered Search Engine | Very High | Google, OpenAI, Anthropic | RAG + live web crawling, citation generation, streaming responses |
+| 3 | Design an AI Co-pilot like GitHub Copilot | High | Microsoft, Google, JetBrains | Context management across files, latency-sensitive completion, model routing |
+| 4 | Design an Image Generation Service (Midjourney/DALL-E) | High | OpenAI, Google, Meta | Queue management, GPU scheduling, content safety filtering at scale |
+| 5 | Design a Feature Store for ML Models | High | Netflix, Uber, Airbnb | Batch vs real-time features, training-serving skew, feature versioning |
+| 6 | Design Real-Time Fraud Detection System | High | Stripe, PayPal, Amazon | 50ms latency at 50K TPS, continuous model updates, feature engineering |
+| 7 | Design ML Model Monitoring in Production | Medium | Amazon, Google, Microsoft | Drift detection (data, concept, prediction), automated alerting, degradation response |
+| 8 | Design an Autonomous AI Travel Booking Agent | High | OpenAI, Anthropic, Google | Orchestrator + tool gateway, credential management, rollback, risk-classified actions |
+| 9 | Design a Hospital Voice Assistant | Very High | Google, Amazon, Apple | Multimodal (STT + LLM + TTS), HIPAA compliance, medical-context latency |
+| 10 | Design a Conversational Recommender System | High | Netflix, Amazon, TikTok | Dialogue state tracking + recommendation engines |
+
+### System Design Prompts Reported in H2 2026
+
+Prompts with a named company, interview stage and month from July to September 2026. Three of the six are durable asynchronous job systems (schedulers, worker pools, long-running queries): that pattern now shows up more often than classic consumer products at AI-native companies.
+
+| # | Problem | Company | Stage | When | Source |
+|---|---------|---------|-------|------|--------|
+| 1 | Design a Concurrent Image Processing Service: scale from one worker to many, with leasing and ownership, idempotent output, retries, cancellation and backpressure | Anthropic | Onsite | Jul 2026 | [PracHub](https://prachub.com/interview-questions/design-a-concurrent-image-processing-service) |
+| 2 | Design a CI/CD Job Scheduler: multi-tenant, dependency-aware jobs, fair resource placement, durable state, worker-loss recovery | Cursor | Technical screen | Aug 2026 | [PracHub](https://prachub.com/interview-questions/design-a-ci-cd-job-scheduler) |
+| 3 | Design a Durable Delayed Task Scheduler: accept a task with a future execution time and hand it to workers when due, surviving failures | Decagon | Technical screen | Aug 2026 | [PracHub](https://prachub.com/interview-questions/design-a-durable-delayed-task-scheduler) |
+| 4 | Design a Long-Running Query Service: durable async jobs, status and result polling, resource limits, clear retry, cancel and failure semantics | Perplexity | Onsite | Sep 2026 | [PracHub](https://prachub.com/interview-questions/design-a-long-running-query-service) |
+| 5 | Design a Visa-Style Card Payment Processing System: scope as the card network between banks or as a merchant-side payment service | Databricks | Onsite | Sep 2026 | [PracHub](https://prachub.com/interview-questions/design-a-visa-style-card-payment-processing-system) |
+| 6 | Design an Enterprise AI Research Agent: internal plus web retrieval, synthesis with citations, respects per-user permissions | Cohere | Onsite | Sep 2026 | [PracHub](https://prachub.com/interview-questions/design-an-enterprise-ai-research-agent-with-internal-and-web-retrieval-and-citations) |
+
+### Emerging System Design Trends in 2025-2026
+
+Several key trends are shaping system design interviews in 2025-2026:
+
+1. **AI Integration at Scale**
+   - Systems now commonly incorporate AI/ML components
+   - Focus on handling model latency and unpredictability
+   - Managing prompt engineering and context at scale
+   - Robust handling of AI hallucinations and errors
+
+2. **Multi-Agent and Agentic Architectures (Major 2026 Shift)**
+   - Now a distinct interview category at senior/staff levels (Gartner forecast: 33% of enterprise software applications will include agentic AI by 2028, up from under 1% in 2024)
+   - Key components: orchestrator (observe-think-act loop), tool gateway with OpenAPI schemas, memory systems (working/episodic/semantic/procedural), policy/guardrails engine
+   - Action risk classification: read-only, reversible-write, irreversible-write, external-communication
+   - Tool gateway architecture: standardized schemas, credential management via secrets managers, sandboxed execution, distributed tracing
+   - Model Context Protocol (MCP): open standard for LLM-to-tool connections, created by Anthropic and donated in December 2025 to the Agentic AI Foundation, a Linux Foundation directed fund co-founded by Anthropic, Block and OpenAI
+
+3. **Edge-Cloud Hybrid Systems**
+   - Processing sensitive data at the edge
+   - Intelligent workload distribution
+   - Handling intermittent connectivity
+   - Resource-constrained optimization
+
+4. **Privacy-Preserving Architectures**
+   - Federated learning and analytics
+   - Differential privacy implementations
+   - Zero-knowledge proofs for verification
+   - Data minimization and anonymization
+
+5. **Real-time Collaboration at Scale**
+   - Global distributed collaboration
+   - Low-latency conflict resolution
+   - Eventual consistency with immediate feedback
+   - Multi-modal interaction (text, voice, visual)
+
+---
+
+## Advanced System Design Concepts for 2026
+
+To excel in 2026 system design interviews, candidates should be familiar with these advanced concepts:
+
+### 1. Serverless and Function-as-a-Service Evolution
+
+The serverless paradigm has evolved beyond simple functions to complex workflows:
+
+- **Stateful Serverless**: Managing state in serverless architectures
+- **Serverless Workflows**: Orchestration of complex function chains
+- **Cold Start Optimization**: Techniques to minimize cold start latency
+- **FinOps for Serverless**: Cost optimization strategies for serverless at scale
+
+### 2. AI Infrastructure Design
+
+With AI becoming central to most systems, understanding AI infrastructure is critical:
+
+- **Inference Optimization**: Techniques like quantization, batching, and KV caching
+- **Model Lifecycle Management**: Versioning, A/B testing, and progressive rollouts
+- **Prompt Engineering Infrastructure**: Systems for managing and optimizing prompts
+- **Multi-Modal Integration**: Combining text, image, audio, and video models
+
+> For the production mechanics behind these (prefix caching, quantization math, MoE, agent sandboxing), see [genai-engg/](../genai-engg/README.md).
+
+### 3. Distributed Systems Resilience
+
+Modern distributed systems require sophisticated resilience strategies:
+
+- **Chaos Engineering**: Designing systems that withstand unexpected failures
+- **Multi-Region Recovery**: Cross-region failover and replication strategies
+- **Gray Failures**: Detecting and handling partial system failures
+- **Backpressure Mechanisms**: Elegant degradation under load
+
+### 4. Data Mesh Architectures
+
+Data architecture has evolved from centralized lakes to distributed ownership:
+
+- **Domain-Oriented Ownership**: Distributing data ownership to domain experts
+- **Self-Serve Data Platforms**: Enabling teams to consume data without bottlenecks
+- **Federated Governance**: Maintaining consistency while distributing control
+- **Data Contracts**: Establishing clear interfaces between data producers and consumers
+
+### 5. Event-Driven Systems
+
+Event-driven architecture has become the backbone of reactive, scalable systems:
+
+- **Event Sourcing at Scale**: Practical implementations for large-scale systems
+- **CQRS Patterns**: Separating read and write models for performance
+- **Stream Processing**: Real-time analytics and processing of event streams
+- **Event Schema Evolution**: Managing changes to event structures over time
+
+---
+
+## Updated Interview Framework for 2026
+
+The traditional system design interview framework has evolved to better assess candidates' ability to design modern systems:
+
+### 1. Problem Exploration (5 minutes)
+- Functional and non-functional requirements
+- Scale, performance, and reliability expectations
+- User profiles and access patterns
+- **New**: AI/ML integration requirements
+- **New**: Privacy and ethical considerations
+
+### 2. High-Level Architecture (10 minutes)
+- Core components and data flow
+- API design and interfaces
+- **New**: AI/ML component integration
+- **New**: Edge-cloud distribution strategy
+
+### 3. Component Deep Dive (15 minutes)
+- Detailed design of 2-3 critical components
+- Data models and schema design
+- **New**: AI model selection and integration
+- **New**: Privacy-preserving mechanisms
+
+### 4. Scaling and Optimization (10 minutes)
+- Horizontal vs. vertical scaling strategies
+- Caching and performance optimizations
+- **New**: AI inference optimization
+- **New**: Cost optimization strategies
+
+### 5. Operational Excellence (5 minutes)
+- Monitoring and observability
+- Deployment and rollback strategies
+- **New**: Explainability and debugging
+- **New**: Evolution and maintenance plans
+
+### 6. Tradeoff Discussion (5 minutes)
+- Explicit discussion of architectural tradeoffs
+- Alternative approaches considered
+- **New**: Ethical implications of design choices
+- **New**: Future-proofing considerations
+
+---
+
+## Resources for 2026 System Design Preparation
+
+1. **Books**
+   - [Designing Data-Intensive Applications](https://dataintensive.net/) by Martin Kleppmann. Still the single most recommended book for these interviews
+   - System Design Interview, Volumes 1 and 2, by Alex Xu. Closest to the format interviewers actually use
+   - Database Internals by Alex Petrov. Useful when the loop goes deep on storage engines and replication
+
+2. **Engineering Blogs**
+   - [Google Cloud Architecture Center](https://cloud.google.com/architecture)
+   - [AWS Architecture Blog](https://aws.amazon.com/architecture/) and [Serverless Land](https://serverlessland.com/)
+   - [Meta Engineering](https://engineering.fb.com/)
+   - [Netflix Tech Blog](https://netflixtechblog.com/)
+   - [Uber Engineering](https://eng.uber.com/)
+
+3. **Courses and Platforms**
+   - [Grokking Modern System Design Interview](https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers) on Educative
+   - [Hello Interview System Design](https://www.hellointerview.com/learn/system-design/in-a-hurry/introduction). Free written guides organised by problem
+   - [ByteByteGo](https://bytebytego.com/)
+   - [System Design Primer](https://github.com/donnemartin/system-design-primer). Free and open source
+
+## How to Stand Out in 2026 System Design Interviews
+
+1. **Balance Theoretical and Practical Knowledge**
+   - Explain theoretical concepts but ground them in practical implementation details
+   - Refer to real-world examples and case studies from industry
+
+2. **Showcase T-Shaped Knowledge**
+   - Demonstrate broad knowledge across multiple domains
+   - Show deep expertise in at least one critical area (AI, distributed systems, etc.)
+
+3. **Incorporate Emerging Technologies Judiciously**
+   - Know when to apply new technologies vs. traditional approaches
+   - Articulate clear reasoning for technology choices
+
+4. **Address Cross-Cutting Concerns**
+   - Proactively discuss security, privacy, and ethical considerations
+   - Show awareness of regulatory requirements like GDPR, CCPA, or AI Act
+
+5. **Demonstrate Systems Thinking**
+   - Consider how components interact and affect the whole system
+   - Anticipate emergent behaviors and failure modes
+
+---
+
+## Trending Coding Patterns for 2026
+
+Beyond system design, coding interviews remain a crucial part of the technical interview process at top tech companies. Here are the most important coding patterns and questions trending in 2026 interviews.
+
+### High-ROI Coding Patterns for 2026
+
+Focusing on these patterns will give you the highest return on investment for your interview preparation.
+
+#### 1. Two Pointers Technique
+
+**Applications**: Arrays, strings, linked lists
+**Key Problems**:
+- Two Sum variations (three sum, four sum)
+- Container With Most Water
+- Trapping Rain Water
+- Palindrome verification
+- Removing duplicates
+
+**Example Question**:
+```
+Design an algorithm to find all unique quadruplets in an array that sum to a target, with O(n³) time complexity and optimized space usage.
+```
+
+#### 2. Sliding Window
+
+**Applications**: Arrays, strings, hash tables
+**Key Problems**:
+- Maximum sum subarray of size K
+- Longest substring with K distinct characters
+- Minimum window substring
+- Longest substring without repeating characters
+
+**Example Question**:
+```
+Given a string and a pattern, find all start indices of pattern's anagrams in the string with optimal time and space complexity.
+```
+
+#### 3. Tree & Graph Traversals (DFS/BFS)
+
+**Applications**: Binary trees, graphs, matrices
+**Key Problems**:
+- Path sum variations
+- Binary tree level order traversal
+- Course schedule (topological sort)
+- Number of islands
+- Word ladder
+
+**Example Question**:
+```
+Design an algorithm to find the shortest path between two nodes in a weighted graph where weights represent time, but some edges can only be traversed during specific time windows.
+```
+
+#### 4. Binary Search Variations
+
+**Applications**: Sorted arrays, search space reduction
+**Key Problems**:
+- Search in rotated sorted array
+- Find first and last position of element
+- Median of two sorted arrays
+- Kth smallest element in a sorted matrix
+
+**Example Question**:
+```
+Design an algorithm to find the kth smallest element in a row-wise and column-wise sorted 2D array with optimal time complexity.
+```
+
+#### 5. Dynamic Programming with Optimizations
+
+**Applications**: Optimization problems, counting problems
+**Key Problems**:
+- Longest increasing subsequence
+- Edit distance
+- Coin change
+- Unique paths
+- Knapsack problem variants
+
+**Example Question**:
+```
+Implement a space-optimized solution for the minimum cost to cut a rod into pieces of specific lengths, where each cut has a different cost.
+```
+
+#### 6. Graph Algorithms (Advanced)
+
+**Applications**: Social networks, routing, scheduling
+**Key Problems**:
+- Network delay time
+- Minimum spanning tree
+- Strongly connected components
+- Shortest path algorithms (Dijkstra's, Bellman-Ford)
+
+**Example Question**:
+```
+Design an algorithm to find the most efficient way to connect multiple servers where connection costs vary based on data transfer rates and physical distance.
+```
+
+#### 7. Interval Merging and Processing
+
+**Applications**: Calendar scheduling, resource allocation
+**Key Problems**:
+- Merge intervals
+- Insert interval
+- Meeting rooms
+- Non-overlapping intervals
+
+**Example Question**:
+```
+Implement an algorithm that can schedule optimal maintenance windows for a system with multiple components, each requiring different maintenance intervals.
+```
+
+### Latest Coding Questions at Top Companies (2025-2026)
+
+| Company | Question | Difficulty | Pattern |
+|---------|----------|------------|---------|
+| Google | Timed train schedule reachability: can you get from station A to B given trains as (from, to, departure, arrival)? (onsite, Oct 2026) | Medium | Graph / Earliest-Arrival BFS |
+| Meta | Maze solver with path printing, built and then optimised in the AI-enabled round (2026) | Medium-Hard | BFS / AI-Assisted Coding |
+| Amazon | Fix planted bugs in an existing service with an embedded assistant, against visible and hidden tests (OA, 2026) | Medium | Debugging / AI-Assisted |
+| Microsoft | Build a CSV query engine that parses rows and supports filtered queries (Jan 2026) | Medium | Parsing / Design |
+| OpenAI | Fault-tolerant task queue where workers can crash or hang and no task may be lost, then retries, a dead-letter queue and dependencies (Oct 2026) | Hard | Concurrency / Design |
+| Anthropic | Review four pull requests with Claude Code available, then improve one (onsite, Aug 2026) | Hard | AI-Assisted Code Review |
+| Apple | Time-to-live token manager with generate, renew while unexpired, and count_unexpired (tech screen, Sep 2026) | Medium | Hash Map / Design |
+| Netflix | TTL cache with LRU eviction (Jul 2026) | Medium-Hard | Design / Caching |
+| Uber | Thread-safe token-bucket rate limiter (machine coding, Senior+, Jun 2026) | Hard | Concurrency |
+
+> For the fuller per-company breakdowns at AI labs specifically (loop structure, AI-tool policy, corporate notes), see [company_interview_processes.md](company_interview_processes.md).
+
+### Preparation Strategy for 2026
+
+1. **Master the Fundamentals**: Ensure you have a solid understanding of data structures, algorithms, and complexity analysis.
+2. **Pattern Recognition**: Group problems by patterns rather than by data structures. This helps apply solutions across different contexts.
+3. **Practice Optimization**: Don't stop at a working solution; focus on optimizing time and space complexity.
+4. **Mock Interviews**: Schedule regular mock interviews to simulate real interview conditions.
+5. **Verbalize Your Thinking**: Practice explaining your thought process while coding.
+6. **Learn from Solutions**: After solving a problem, study multiple approaches to understand different perspectives.
+7. **Consistent Practice**: Aim for consistent daily practice rather than cramming.
+
+### Advanced Topics to Master in 2026
+
+- **AI/ML Algorithms**: Familiarity with fundamental ML algorithms and data structures.
+- **Distributed Systems Coding**: Problems involving distributed data structures and algorithms.
+- **Concurrency follow-ups**: Thread safety, locks and race conditions now follow ordinary problems at LinkedIn, Databricks, Anthropic and xAI.
+- **Reading and debugging unfamiliar code**: Debugging and AI-assisted rounds at Meta, Amazon, Stripe and DoorDash hand you an existing codebase rather than a blank editor.
+
+By focusing on these patterns and topics, you'll be well-prepared for coding interviews at top tech companies in 2026.
+
+---
+
+[← Back to coding_interview index](README.md)
