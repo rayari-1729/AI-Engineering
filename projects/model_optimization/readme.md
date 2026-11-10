@@ -1,5 +1,15 @@
-Wan2.2 8bit : [Link](https://huggingface.co/spaces/r3gm/wan2-2-fp8da-aoti-preview-2/tree/main)
+# Model Optimization
 
+Notes and write-ups on model-level and deployment-level optimization for vision/generative models.
+
+| File | Contents |
+|---|---|
+| [meanshift_normalization.md](meanshift_normalization.md) | Fusing input normalization into a 1×1 Conv2d for faster, portable inference (ONNX/TensorRT/CoreML) |
+| [sobel_and_vgg_perceptual_loss.md](sobel_and_vgg_perceptual_loss.md) | Batched Sobel edge loss + truncated VGG perceptual loss for sharper SR/generation training |
+
+Wan2.2 8bit: [Link](https://huggingface.co/spaces/r3gm/wan2-2-fp8da-aoti-preview-2/tree/main)
+
+---
 
 # QNN Execution Paradigms (JIT vs. AoT)
 When deploying neural networks to Qualcomm Snapdragon NPUs using the Qualcomm Neural Network (QNN) SDK, performance and deployment flexibility are governed by whether the model graph is evaluated via Just-in-Time (JIT) or Ahead-of-Time (AoT) compilation.

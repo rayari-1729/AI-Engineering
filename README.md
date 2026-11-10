@@ -9,6 +9,9 @@
     <p align="center">A collection of learning material and tools for building production AI applications
     <br>
     </p>
+    <p align="center">
+    📖 Prepping for an interview? See <a href="interview_prep/README.md">interview_prep/</a> for AI Engineer / GenAI Data Scientist Q&A, <a href="genai-engg/README.md">genai-engg/</a> for the production-engineering field guide, and <a href="coding_interview/README.md">coding_interview/</a> for hands-on coding rounds and company-specific process intel.
+    </p>
 <h4 align="center">
     <a href="https://github.com/rayari-1729/AI-Engineering" target="_blank">
         <img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg" alt="Contributions Welcome">

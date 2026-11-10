@@ -88,28 +88,33 @@ For each submission, I'll return:
 
 **2. Placement Recommendation**, like:
 
-> ✅ **Add to:** `Large Language Models` section (after Q9 on multi-head attention)
-> 
-> *Reason: Directly related to transformer internals, fits naturally after the attention discussion.*
+> ✅ **Add to:** `chapters/03-attention-mechanism.md` (after Q6, the Transformer-block question)
+>
+> *Reason: Directly related to transformer internals, fits naturally after the from-scratch block code.*
 
 Or:
 
-> 🆕 **Suggest new section:** `Architecture Deep Dives`
-> 
-> *Reason: This question is more about specific implementation details that don't fit cleanly into existing sections.*
+> 🆕 **Suggest new chapter:** `chapters/09-architecture-deep-dives.md`
+>
+> *Reason: This question is more about specific implementation details that don't fit cleanly into existing chapters.*
 
 ---
 
-## Current Sections in Main Doc (for reference)
+## Current Chapters (for reference)
 
-| # | Section |
-|---|---------|
-| 1 | Generative Models |
-| 2 | Large Language Models |
-| 3 | Multimodal Models |
-| 4 | Embeddings |
-| 5 | Training, Inference & Evaluation |
-| 6 | Numerical Stability & Optimization |
-| 7 | Retrieval-Augmented Generation (RAG) |
+See [README.md](README.md) for the full index with topics covered per chapter.
+
+| # | Chapter | File |
+|---|---------|------|
+| 1 | Retrieval-Augmented Generation | [chapters/01-rag.md](chapters/01-rag.md) |
+| 2 | Transformers & LLM Architecture | [chapters/02-transformers-and-llms.md](chapters/02-transformers-and-llms.md) |
+| 3 | Attention Mechanism | [chapters/03-attention-mechanism.md](chapters/03-attention-mechanism.md) |
+| 4 | Generative Models | [chapters/04-generative-models.md](chapters/04-generative-models.md) |
+| 5 | Multimodal Models | [chapters/05-multimodal-models.md](chapters/05-multimodal-models.md) |
+| 6 | Embeddings | [chapters/06-embeddings.md](chapters/06-embeddings.md) |
+| 7 | Training, Inference & Evaluation | [chapters/07-training-inference-eval.md](chapters/07-training-inference-eval.md) |
+| 8 | Numerical Stability & Cost Engineering | [chapters/08-numerical-stability-and-cost.md](chapters/08-numerical-stability-and-cost.md) |
+
+If a new question doesn't fit any existing chapter, I'll suggest a new chapter file and add it to the index.
 
 ---
